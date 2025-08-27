@@ -258,6 +258,7 @@ struct MainHoleView: View {
                 showingGreenImage ? placeholderGreenView : placeholderHoleView
             }
         }
+        .rotationEffect(Angle(degrees: locationManager.heading?.trueHeading ?? 0))
         .shadow(radius: 15, x: 0, y: 8)
         .overlay(
             // 이미지 전환 힌트
