@@ -6,6 +6,7 @@ struct WeatherView: View {
     let golfCourse: GolfCourse // 부모 골프장 정보를 받아야 함
     
     @StateObject private var weatherService = WeatherService()
+    @StateObject private var locationManager = LocationManager()
     
     var body: some View {
         ScrollView {
@@ -62,6 +63,10 @@ struct WeatherView: View {
         .navigationTitle("날씨 정보")
         .onAppear {
             loadWeatherData()
+            locationManager.startUpdatingHeading()
+        }
+        .onDisappear {
+            locationManager.stopUpdatingHeading()
         }
     }
     
@@ -127,13 +132,52 @@ struct WeatherView: View {
                     .font(.body)
             }
             
-            // 풍향 정보
-            HStack {
-                Image(systemName: "wind")
-                    .foregroundColor(.blue)
-                Text("풍향: \(weather.windDirection)")
+            // 풍향 정보 (부드러운 회전)
+            VStack(spacing: 10) {
+                Text("풍향")
+                    .font(.headline)
+                
+                ZStack {
+                    // 외부 원
+                    Circle()
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 2)
+                        .frame(width: 120, height: 120)
+                    
+                    // 4방향 메인 표시
+                    ForEach(0..<4) { index in
+                        let angle = Double(index) * 90.0
+                        let direction = getMainDirectionName(angle)
+                        
+                        Text(direction)
+                            .font(.caption2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
+                            .offset(y: -65)
+                            .rotationEffect(.degrees(angle))
+                    }
+                    
+                    // 풍향 화살표 (부드러운 회전)
+                    VStack(spacing: 0) {
+                        Image(systemName: "arrow.up")
+                            .font(.system(size: 30))
+                            .foregroundColor(.blue)
+                            .rotationEffect(.degrees(getWindArrowRotation(weather.windDirection)))
+                        
+                        Text("풍향")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.blue)
+                    }
+                }
+                
+                Text("\(weather.windDirection)")
                     .font(.body)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.blue)
             }
+            .padding()
+            .background(Color.blue.opacity(0.1))
+            .cornerRadius(10)
             
             // 풍속 정보
             HStack {
@@ -172,6 +216,47 @@ struct WeatherView: View {
             .padding()
             .background(Color.orange.opacity(0.1))
             .cornerRadius(8)
+        }
+    }
+    
+    private func getMainDirectionName(_ degrees: Double) -> String {
+        let normalizedDegrees = degrees.truncatingRemainder(dividingBy: 360)
+        let positiveDegrees = normalizedDegrees < 0 ? normalizedDegrees + 360 : normalizedDegrees
+        
+        switch positiveDegrees {
+        case 0:
+            return "N"
+        case 90:
+            return "E"
+        case 180:
+            return "S"
+        case 270:
+            return "W"
+        default:
+            return "N"
+        }
+    }
+    
+    private func getWindArrowRotation(_ windDirection: String) -> Double {
+        switch windDirection {
+        case "북":
+            return 0
+        case "북동":
+            return 45
+        case "동":
+            return 90
+        case "남동":
+            return 135
+        case "남":
+            return 180
+        case "남서":
+            return 225
+        case "서":
+            return 270
+        case "북서":
+            return 315
+        default:
+            return 0
         }
     }
     

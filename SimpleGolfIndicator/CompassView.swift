@@ -7,17 +7,17 @@ struct CompassView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            // 나침반 원형 디스플레이
+            // 나침반 원형 디스플레이 (부드러운 회전)
             ZStack {
                 // 외부 원
                 Circle()
                     .stroke(Color.gray.opacity(0.3), lineWidth: 2)
                     .frame(width: 120, height: 120)
                 
-                // 방향 표시
-                ForEach(0..<8) { index in
-                    let angle = Double(index) * 45.0
-                    let direction = getDirectionName(angle)
+                // 4방향 메인 표시
+                ForEach(0..<4) { index in
+                    let angle = Double(index) * 90.0
+                    let direction = getMainDirectionName(angle)
                     
                     Text(direction)
                         .font(.caption2)
@@ -27,7 +27,7 @@ struct CompassView: View {
                         .rotationEffect(.degrees(angle))
                 }
                 
-                // 중앙 바늘
+                // 중앙 바늘 (부드러운 회전)
                 VStack(spacing: 0) {
                     Image(systemName: "location.north.fill")
                         .font(.system(size: 30))
@@ -47,12 +47,12 @@ struct CompassView: View {
                     Text("현재 방향")
                         .font(.headline)
                     
-                    Text("\(Int(heading.trueHeading))°")
+                    Text("\(String(format: "%.1f", heading.trueHeading))°")
                         .font(.title)
                         .fontWeight(.bold)
                         .foregroundColor(.blue)
                     
-                    Text(getDirectionName(heading.trueHeading))
+                    Text(getDetailedDirectionName(heading.trueHeading))
                         .font(.body)
                         .foregroundColor(.secondary)
                 }
@@ -82,7 +82,9 @@ struct CompassView: View {
             locationManager.startUpdatingHeading()
         }
         .onReceive(locationManager.$heading) { newHeading in
-            heading = newHeading
+            withAnimation(.easeInOut(duration: 0.3)) {
+                heading = newHeading
+            }
         }
     }
     
@@ -120,29 +122,47 @@ struct CompassView: View {
         }
     }
     
-    private func getDirectionName(_ degrees: Double) -> String {
+    private func getMainDirectionName(_ degrees: Double) -> String {
+        let normalizedDegrees = degrees.truncatingRemainder(dividingBy: 360)
+        let positiveDegrees = normalizedDegrees < 0 ? normalizedDegrees + 360 : normalizedDegrees
+        
+        switch positiveDegrees {
+        case 0:
+            return "N"
+        case 90:
+            return "E"
+        case 180:
+            return "S"
+        case 270:
+            return "W"
+        default:
+            return "N"
+        }
+    }
+    
+    private func getDetailedDirectionName(_ degrees: Double) -> String {
         let normalizedDegrees = degrees.truncatingRemainder(dividingBy: 360)
         let positiveDegrees = normalizedDegrees < 0 ? normalizedDegrees + 360 : normalizedDegrees
         
         switch positiveDegrees {
         case 0..<22.5, 337.5..<360:
-            return "N"
+            return "북"
         case 22.5..<67.5:
-            return "NE"
+            return "북동"
         case 67.5..<112.5:
-            return "E"
+            return "동"
         case 112.5..<157.5:
-            return "SE"
+            return "남동"
         case 157.5..<202.5:
-            return "S"
+            return "남"
         case 202.5..<247.5:
-            return "SW"
+            return "남서"
         case 247.5..<292.5:
-            return "W"
+            return "서"
         case 292.5..<337.5:
-            return "NW"
+            return "북서"
         default:
-            return "N"
+            return "북"
         }
     }
 }
