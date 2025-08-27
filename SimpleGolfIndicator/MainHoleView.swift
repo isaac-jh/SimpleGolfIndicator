@@ -385,9 +385,10 @@ struct MainHoleView: View {
     // MARK: - Helper Methods
     private func getWindArrowRotation() -> Double {
         guard let weather = weatherService.weatherData else { return 0 }
-        
-        // 원본 풍향 각도를 사용하여 부드러운 회전
-        return weather.rawWindDegrees
+        let wind = weather.rawWindDegrees
+        let heading = locationManager.heading?.trueHeading ?? 0
+        let relative = fmod((wind - heading) + 360, 360)
+        return relative
     }
     
     private func loadWeatherData() {
