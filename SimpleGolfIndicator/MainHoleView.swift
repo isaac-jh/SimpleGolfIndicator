@@ -9,6 +9,25 @@ struct MainHoleView: View {
     @StateObject private var weatherService = WeatherService()
     @StateObject private var locationManager = LocationManager()
     
+    // 상태 변수들
+    @State private var showModal = false
+    @State private var currentHoleIndex: Int
+    @State private var showingGreenImage = false
+    @State private var dragOffset = CGSize.zero
+    
+    init(selectedCourse: Course, selectedHole: Hole, selectedGolfCourse: GolfCourse) {
+        self.selectedCourse = selectedCourse
+        self.selectedHole = selectedHole
+        self.selectedGolfCourse = selectedGolfCourse
+        
+        // 초기 홀 인덱스 설정
+        if let index = selectedCourse.holes.firstIndex(where: { $0.id == selectedHole.id }) {
+            self._currentHoleIndex = State(initialValue: index)
+        } else {
+            self._currentHoleIndex = State(initialValue: 0)
+        }
+    }
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -23,6 +42,11 @@ struct MainHoleView: View {
                         
                         Spacer()
                         
+                        // 중앙 - 코스 이름
+                        courseNameView
+                        
+                        Spacer()
+                        
                         // 오른쪽 위 - 거리
                         distanceView
                     }
@@ -31,9 +55,39 @@ struct MainHoleView: View {
                     
                     Spacer()
                     
-                    // 중앙 홀 이미지
-                    holeImageView
-                        .frame(width: geometry.size.width * 0.8, height: geometry.size.height * 0.5)
+                    // 중앙 홀 이미지 (제스처 적용)
+                    ZStack {
+                        // 홀 넘버 배경 (이미지 뒷쪽)
+                        Text("\(getCurrentHole().num)")
+                            .font(.system(size: 120, weight: .bold, design: .rounded))
+                            .foregroundColor(.white.opacity(0.6))
+                            .shadow(color: .black.opacity(0.3), radius: 5, x: 2, y: 2)
+                        
+                        // 홀 이미지
+                        holeImageView
+                            .frame(width: geometry.size.width * 0.8, height: geometry.size.height * 0.5)
+                            .gesture(
+                                TapGesture()
+                                    .onEnded {
+                                        withAnimation(.easeInOut(duration: 0.3)) {
+                                            showingGreenImage.toggle()
+                                        }
+                                    }
+                            )
+                            .offset(dragOffset)
+                            .gesture(
+                                DragGesture()
+                                    .onChanged { value in
+                                        dragOffset = value.translation
+                                    }
+                                    .onEnded { value in
+                                        handleSwipeGesture(value)
+                                        withAnimation(.easeInOut(duration: 0.3)) {
+                                            dragOffset = .zero
+                                        }
+                                    }
+                            )
+                    }
                     
                     Spacer()
                     
@@ -50,9 +104,22 @@ struct MainHoleView: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 10)
                 }
+                
+                // 위로 스와이프 제스처 감지 영역
+                Rectangle()
+                    .fill(Color.clear)
+                    .frame(height: 100)
+                    .gesture(
+                        DragGesture()
+                            .onEnded { value in
+                                if value.translation.y < -50 && abs(value.translation.x) < 100 {
+                                    showModal = true
+                                }
+                            }
+                    )
             }
         }
-        .navigationTitle("\(selectedHole.num)번 홀")
+        .navigationTitle("\(getCurrentHole().num)번 홀")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             loadWeatherData()
@@ -60,6 +127,92 @@ struct MainHoleView: View {
         }
         .onDisappear {
             locationManager.stopUpdatingHeading()
+        }
+        .sheet(isPresented: $showModal) {
+            HoleSelectionModal(
+                isPresented: $showModal,
+                selectedCourse: selectedCourse,
+                selectedHole: Binding(
+                    get: { getCurrentHole() },
+                    set: { _ in }
+                ),
+                selectedGolfCourse: selectedGolfCourse
+            )
+        }
+    }
+    
+    // MARK: - 코스 이름 뷰
+    private var courseNameView: some View {
+        VStack(spacing: 4) {
+            Text("코스")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Text(selectedCourse.name)
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.primary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 15)
+                .fill(Color(.systemBackground).opacity(0.9))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15)
+                        .stroke(Color(.systemGray4), lineWidth: 1)
+                )
+        )
+        .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+    }
+    
+    // MARK: - 현재 홀 정보 가져오기
+    private func getCurrentHole() -> Hole {
+        guard currentHoleIndex >= 0 && currentHoleIndex < selectedCourse.holes.count else {
+            return selectedHole
+        }
+        return selectedCourse.holes[currentHoleIndex]
+    }
+    
+    // MARK: - 스와이프 제스처 처리
+    private func handleSwipeGesture(_ value: DragGesture.Value) {
+        let horizontalThreshold: CGFloat = 100
+        let verticalThreshold: CGFloat = 50
+        
+        if abs(value.translation.x) > horizontalThreshold && abs(value.translation.y) < verticalThreshold {
+            // 좌우 스와이프
+            if value.translation.x > 0 {
+                // 오른쪽으로 스와이프 - 이전 홀
+                goToPreviousHole()
+            } else {
+                // 왼쪽으로 스와이프 - 다음 홀
+                goToNextHole()
+            }
+        }
+    }
+    
+    // MARK: - 홀 이동 함수들
+    private func goToNextHole() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            if currentHoleIndex < selectedCourse.holes.count - 1 {
+                currentHoleIndex += 1
+            } else {
+                // 마지막 홀이면 첫 번째 홀로
+                currentHoleIndex = 0
+            }
+            showingGreenImage = false
+        }
+    }
+    
+    private func goToPreviousHole() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            if currentHoleIndex > 0 {
+                currentHoleIndex -= 1
+            } else {
+                // 첫 번째 홀이면 마지막 홀로
+                currentHoleIndex = selectedCourse.holes.count - 1
+            }
+            showingGreenImage = false
         }
     }
     
@@ -71,11 +224,11 @@ struct MainHoleView: View {
                 .foregroundColor(.secondary)
             
             HStack(spacing: 4) {
-                Image(systemName: selectedHole.elevation >= 0 ? "arrow.up" : "arrow.down")
-                    .foregroundColor(selectedHole.elevation >= 0 ? .green : .red)
+                Image(systemName: getCurrentHole().elevation >= 0 ? "arrow.up" : "arrow.down")
+                    .foregroundColor(getCurrentHole().elevation >= 0 ? .green : .red)
                     .font(.caption)
                 
-                Text("\(abs(selectedHole.elevation))m")
+                Text("\(abs(getCurrentHole().elevation))m")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
@@ -100,7 +253,7 @@ struct MainHoleView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
             
-            Text("\(selectedHole.distance)m")
+            Text("\(getCurrentHole().distance)m")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
@@ -120,7 +273,18 @@ struct MainHoleView: View {
     // MARK: - 홀 이미지 뷰
     private var holeImageView: some View {
         Group {
-            if let holeImageUrl = selectedHole.holeImage, !holeImageUrl.isEmpty {
+            if showingGreenImage, let greenImageUrl = getCurrentHole().greenImage, !greenImageUrl.isEmpty {
+                // 그린 이미지 표시
+                AsyncImage(url: URL(string: greenImageUrl)) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .cornerRadius(20)
+                } placeholder: {
+                    placeholderGreenView
+                }
+            } else if let holeImageUrl = getCurrentHole().holeImage, !holeImageUrl.isEmpty {
+                // 홀 이미지 표시
                 AsyncImage(url: URL(string: holeImageUrl)) { image in
                     image
                         .resizable()
@@ -130,10 +294,38 @@ struct MainHoleView: View {
                     placeholderHoleView
                 }
             } else {
-                placeholderHoleView
+                // 플레이스홀더
+                showingGreenImage ? placeholderGreenView : placeholderHoleView
             }
         }
         .shadow(radius: 15, x: 0, y: 8)
+        .overlay(
+            // 이미지 전환 힌트
+            VStack {
+                HStack {
+                    Spacer()
+                    VStack {
+                        Image(systemName: showingGreenImage ? "flag.filled" : "circle.grid.3x3")
+                            .font(.system(size: 20))
+                            .foregroundColor(.white)
+                            .padding(8)
+                            .background(Color.black.opacity(0.6))
+                            .clipShape(Circle())
+                        
+                        Text(showingGreenImage ? "홀 이미지" : "그린 이미지")
+                            .font(.caption2)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.black.opacity(0.6))
+                            .cornerRadius(8)
+                    }
+                    .padding(.top, 10)
+                    .padding(.trailing, 10)
+                }
+                Spacer()
+            }
+        )
     }
     
     private var placeholderHoleView: some View {
@@ -157,13 +349,48 @@ struct MainHoleView: View {
                     .foregroundColor(.red)
                     .shadow(radius: 3)
                 
-                Text("\(selectedHole.num)번 홀")
+                Text("\(getCurrentHole().num)번 홀")
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
                     .shadow(radius: 2)
                 
-                Text("파 \(selectedHole.par)")
+                Text("파 \(getCurrentHole().par)")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                    .shadow(radius: 1)
+            }
+        }
+    }
+    
+    private var placeholderGreenView: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 20)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.blue.opacity(0.4), Color.blue.opacity(0.2)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color.blue.opacity(0.6), lineWidth: 2)
+                )
+            
+            VStack(spacing: 15) {
+                Image(systemName: "circle.grid.3x3")
+                    .font(.system(size: 60))
+                    .foregroundColor(.blue)
+                    .shadow(radius: 3)
+                
+                Text("그린")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                    .shadow(radius: 2)
+                
+                Text("\(getCurrentHole().num)번 홀")
                     .font(.headline)
                     .foregroundColor(.secondary)
                     .shadow(radius: 1)
