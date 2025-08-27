@@ -13,11 +13,16 @@ struct MainAppView: View {
     @State private var showInitialModal = true
     @State private var selectedCourse: Course?
     @State private var selectedHole: Hole?
+    @State private var selectedGolfCourse: GolfCourse?
     
     var body: some View {
         ZStack {
-            if let course = selectedCourse, let hole = selectedHole {
-                ContentView(selectedCourse: course, selectedHole: hole)
+            if let course = selectedCourse, let hole = selectedHole, let golfCourse = selectedGolfCourse {
+                ContentView(
+                    selectedCourse: course,
+                    selectedHole: hole,
+                    selectedGolfCourse: golfCourse
+                )
             } else {
                 // 초기 로딩 화면
                 VStack {
@@ -41,7 +46,8 @@ struct MainAppView: View {
                 InitialSetupModal(
                     isPresented: $showInitialModal,
                     selectedCourse: $selectedCourse,
-                    selectedHole: $selectedHole
+                    selectedHole: $selectedHole,
+                    selectedGolfCourse: $selectedGolfCourse
                 )
                 .transition(.move(edge: .bottom))
             }

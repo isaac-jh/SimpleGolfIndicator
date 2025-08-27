@@ -3,20 +3,28 @@ import CoreLocation
 
 struct WeatherView: View {
     let selectedCourse: Course
-    @State private var weatherData: WeatherData?
-    @State private var isLoading = false
+    let golfCourse: GolfCourse // 부모 골프장 정보를 받아야 함
+    
+    @StateObject private var weatherService = WeatherService()
     
     var body: some View {
         ScrollView {
             VStack(spacing: 15) {
                 // 골프장 정보 표시
                 VStack(spacing: 8) {
-                    Text(selectedCourse.name)
+                    Text(golfCourse.name)
                         .font(.title2)
                         .fontWeight(.bold)
                     
-                    // 부모 골프장의 위치 정보를 표시하려면 추가 구조가 필요
-                    Text("위치 정보")
+                    Text(selectedCourse.name)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    Text("위도: \(String(format: "%.4f", golfCourse.location.latitude))")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Text("경도: \(String(format: "%.4f", golfCourse.location.longitude))")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -24,13 +32,29 @@ struct WeatherView: View {
                 .background(Color.blue.opacity(0.1))
                 .cornerRadius(10)
                 
-                if isLoading {
+                if weatherService.isLoading {
                     ProgressView("날씨 정보 로딩 중...")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if let weather = weatherData {
+                } else if let error = weatherService.error {
+                    errorView(error)
+                } else if let weather = weatherService.weatherData {
                     weatherInfoView(weather)
                 } else {
                     noDataView
+                }
+                
+                // 새로고침 버튼
+                Button(action: {
+                    weatherService.refreshWeatherData(for: golfCourse.coordinate)
+                }) {
+                    HStack {
+                        Image(systemName: "arrow.clockwise")
+                        Text("새로고침")
+                    }
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
                 }
             }
             .padding()
@@ -58,15 +82,49 @@ struct WeatherView: View {
         }
     }
     
+    private func errorView(_ error: String) -> some View {
+        VStack(spacing: 10) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 40))
+                .foregroundColor(.orange)
+            
+            Text("날씨 정보 로딩 실패")
+                .font(.headline)
+                .foregroundColor(.primary)
+            
+            Text(error)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+    }
+    
     private func weatherInfoView(_ weather: WeatherData) -> some View {
         VStack(spacing: 15) {
+            // 날씨 설명
+            HStack {
+                Image(systemName: "cloud.sun.fill")
+                    .foregroundColor(.yellow)
+                Text(weather.description)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+            }
+            
             // 온도 정보
             HStack {
                 Image(systemName: "thermometer")
                     .foregroundColor(.red)
-                Text("\(Int(weather.temperature))°C")
+                Text("\(String(format: "%.1f", weather.temperature))°C")
                     .font(.title2)
                     .fontWeight(.semibold)
+            }
+            
+            // 체감 온도
+            HStack {
+                Image(systemName: "thermometer.snowflake")
+                    .foregroundColor(.blue)
+                Text("체감 온도: \(String(format: "%.1f", weather.feelsLike))°C")
+                    .font(.body)
             }
             
             // 풍향 정보
@@ -107,7 +165,7 @@ struct WeatherView: View {
             HStack {
                 Image(systemName: "exclamationmark.triangle")
                     .foregroundColor(.orange)
-                Text(getGolfImpact(weather))
+                Text(weatherService.getGolfImpact(for: weather))
                     .font(.caption)
                     .multilineTextAlignment(.center)
             }
@@ -117,40 +175,14 @@ struct WeatherView: View {
         }
     }
     
-    private func getGolfImpact(_ weather: WeatherData) -> String {
-        if weather.windSpeed > 10 {
-            return "강풍으로 인해 공의 궤적에 큰 영향"
-        } else if weather.windSpeed > 5 {
-            return "중간 바람으로 인해 공의 궤적에 영향"
-        } else {
-            return "약한 바람으로 인해 공의 궤적에 적은 영향"
-        }
-    }
-    
     private func loadWeatherData() {
-        isLoading = true
-        
-        // 실제 날씨 API 호출 대신 샘플 데이터 사용
-        // 실제 구현 시에는 골프장의 위치 정보를 사용하여 API 호출
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            weatherData = WeatherData(
-                temperature: 22.5,
-                windDirection: "북동",
-                windSpeed: 3.2,
-                humidity: 65
-            )
-            isLoading = false
-        }
+        weatherService.fetchWeatherData(for: golfCourse.coordinate)
     }
-}
-
-struct WeatherData {
-    let temperature: Double
-    let windDirection: String
-    let windSpeed: Double
-    let humidity: Double
 }
 
 #Preview {
-    WeatherView(selectedCourse: GolfCourse.sampleData.courses[0])
+    WeatherView(
+        selectedCourse: GolfCourse.sampleData.courses[0],
+        golfCourse: GolfCourse.sampleData
+    )
 }

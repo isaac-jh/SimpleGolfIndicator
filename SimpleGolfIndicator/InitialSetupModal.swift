@@ -4,6 +4,7 @@ struct InitialSetupModal: View {
     @Binding var isPresented: Bool
     @Binding var selectedCourse: Course?
     @Binding var selectedHole: Hole?
+    @Binding var selectedGolfCourse: GolfCourse?
     
     @StateObject private var golfCourseService = GolfCourseService()
     
@@ -194,6 +195,7 @@ struct InitialSetupModal: View {
         
         selectedCourse = course
         selectedHole = hole
+        selectedGolfCourse = golfCourseService.golfCourse
         
         // 모달을 아래로 내리는 애니메이션
         withAnimation(.easeInOut(duration: 0.5)) {
@@ -206,6 +208,7 @@ struct InitialSetupModal: View {
     InitialSetupModal(
         isPresented: .constant(true),
         selectedCourse: .constant(nil),
-        selectedHole: .constant(nil)
+        selectedHole: .constant(nil),
+        selectedGolfCourse: .constant(nil)
     )
 }

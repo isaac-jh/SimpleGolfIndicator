@@ -3,18 +3,23 @@ import SwiftUI
 struct ContentView: View {
     let selectedCourse: Course
     let selectedHole: Hole
+    let selectedGolfCourse: GolfCourse
     
     var body: some View {
         NavigationView {
             VStack(spacing: 10) {
                 // 선택된 골프장 정보 표시
                 VStack(spacing: 5) {
-                    Text(selectedCourse.name)
+                    Text(selectedGolfCourse.name)
                         .font(.headline)
                         .fontWeight(.semibold)
                     
-                    Text("\(selectedHole.num)번 홀")
+                    Text(selectedCourse.name)
                         .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    Text("\(selectedHole.num)번 홀")
+                        .font(.caption)
                         .foregroundColor(.secondary)
                 }
                 .padding(.top)
@@ -22,7 +27,10 @@ struct ContentView: View {
                 Spacer()
                 
                 // 메인 기능 버튼들
-                NavigationLink(destination: WeatherView(selectedCourse: selectedCourse)) {
+                NavigationLink(destination: WeatherView(
+                    selectedCourse: selectedCourse,
+                    golfCourse: selectedGolfCourse
+                )) {
                     HStack {
                         Image(systemName: "cloud.sun.fill")
                         Text("날씨 정보")
@@ -46,7 +54,10 @@ struct ContentView: View {
                     .cornerRadius(10)
                 }
                 
-                NavigationLink(destination: CourseInfoView(selectedCourse: selectedCourse, selectedHole: selectedHole)) {
+                NavigationLink(destination: CourseInfoView(
+                    selectedCourse: selectedCourse,
+                    selectedHole: selectedHole
+                )) {
                     HStack {
                         Image(systemName: "flag.checkered")
                         Text("코스 정보")
@@ -70,6 +81,7 @@ struct ContentView: View {
 #Preview {
     ContentView(
         selectedCourse: GolfCourse.sampleData.courses[0],
-        selectedHole: GolfCourse.sampleData.courses[0].holes[0]
+        selectedHole: GolfCourse.sampleData.courses[0].holes[0],
+        selectedGolfCourse: GolfCourse.sampleData
     )
 }
