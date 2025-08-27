@@ -37,6 +37,10 @@ class GolfCourseService: ObservableObject {
         var request = URLRequest(url: url)
         request.timeoutInterval = AppConfig.requestTimeout
         
+        if AppConfig.enableLogging {
+            print("Fetching golf course data from: \(url)")
+        }
+        
         URLSession.shared.dataTaskPublisher(for: request)
             .map(\.data)
             .decode(type: GolfCourse.self, decoder: JSONDecoder())
@@ -51,6 +55,10 @@ class GolfCourseService: ObservableObject {
                 receiveValue: { [weak self] golfCourse in
                     self?.golfCourse = golfCourse
                     self?.cacheData(golfCourse)
+                    
+                    if AppConfig.enableLogging {
+                        print("Golf course data received: \(golfCourse.name)")
+                    }
                 }
             )
             .store(in: &cancellables)
@@ -60,19 +68,8 @@ class GolfCourseService: ObservableObject {
         error = message
         isLoading = false
         
-        // 에러 로깅
         if AppConfig.enableLogging {
             print("GolfCourseService Error: \(message)")
-        }
-        
-        // 샘플 데이터로 폴백
-        fallbackToSampleData()
-    }
-    
-    private func fallbackToSampleData() {
-        golfCourse = GolfCourse.sampleData
-        if AppConfig.enableLogging {
-            print("Using fallback sample data")
         }
     }
     

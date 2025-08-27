@@ -74,24 +74,6 @@ class WeatherService: ObservableObject {
         if AppConfig.enableLogging {
             print("WeatherService Error: \(message)")
         }
-        
-        // 에러 발생 시 샘플 데이터로 폴백
-        fallbackToSampleData()
-    }
-    
-    private func fallbackToSampleData() {
-        weatherData = WeatherData(
-            temperature: 22.5,
-            windDirection: "북동",
-            windSpeed: 3.2,
-            humidity: 65,
-            description: "맑음",
-            feelsLike: 23.0
-        )
-        
-        if AppConfig.enableLogging {
-            print("Using fallback weather data")
-        }
     }
     
     // MARK: - Caching

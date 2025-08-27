@@ -31,135 +31,63 @@ struct InitialSetupModal: View {
             Spacer()
             
             if golfCourseService.isLoading {
-                // 로딩 상태
-                VStack(spacing: 15) {
-                    ProgressView()
-                        .scaleEffect(1.2)
-                    
-                    Text("골프장 정보를 불러오는 중...")
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                LoadingView(message: "골프장 정보를 불러오는 중...")
             } else if let error = golfCourseService.error {
-                // 에러 상태
                 VStack(spacing: 15) {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 40))
-                        .foregroundColor(.orange)
+                    ErrorView(
+                        title: "데이터 로딩 실패",
+                        message: error,
+                        icon: "exclamationmark.triangle"
+                    )
                     
-                    Text("데이터 로딩 실패")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                    
-                    Button("다시 시도") {
+                    RefreshButton(action: {
                         golfCourseService.refreshData()
-                    }
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
+                    })
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 // 정상 상태 - 드롭다운들
-                // CC 선택 드롭다운
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("CC 선택")
-                        .font(.headline)
-                        .foregroundColor(.primary)
+                VStack(spacing: 20) {
+                    // CC 선택 드롭다운
+                    dropdownSection(
+                        title: "CC 선택",
+                        selectedValue: selectedCC,
+                        placeholder: "CC를 선택하세요",
+                        options: golfCourseService.getAvailableCCs(),
+                        onSelect: { cc in
+                            selectedCC = cc
+                            selectedCourseName = ""
+                        }
+                    )
                     
-                    Menu {
-                        ForEach(golfCourseService.getAvailableCCs(), id: \.self) { cc in
-                            Button(cc) {
-                                selectedCC = cc
-                                selectedCourseName = ""
-                            }
-                        }
-                    } label: {
-                        HStack {
-                            Text(selectedCC.isEmpty ? "CC를 선택하세요" : selectedCC)
-                                .foregroundColor(selectedCC.isEmpty ? .secondary : .primary)
-                            Spacer()
-                            Image(systemName: "chevron.down")
-                                .foregroundColor(.blue)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(10)
-                    }
-                }
-                
-                // 코스 이름 선택 드롭다운
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("코스 이름")
-                        .font(.headline)
-                        .foregroundColor(.primary)
+                    // 코스 이름 선택 드롭다운
+                    dropdownSection(
+                        title: "코스 이름",
+                        selectedValue: selectedCourseName,
+                        placeholder: "코스를 선택하세요",
+                        options: golfCourseService.getAvailableCourses(for: selectedCC).map { $0.name },
+                        onSelect: { courseName in
+                            selectedCourseName = courseName
+                        },
+                        disabled: selectedCC.isEmpty
+                    )
                     
-                    Menu {
-                        ForEach(golfCourseService.getAvailableCourses(for: selectedCC), id: \.id) { course in
-                            Button(course.name) {
-                                selectedCourseName = course.name
-                            }
-                        }
-                    } label: {
-                        HStack {
-                            Text(selectedCourseName.isEmpty ? "코스를 선택하세요" : selectedCourseName)
-                                .foregroundColor(selectedCourseName.isEmpty ? .secondary : .primary)
-                            Spacer()
-                            Image(systemName: "chevron.down")
-                                .foregroundColor(.blue)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(10)
-                    }
-                    .disabled(selectedCC.isEmpty)
-                }
-                
-                // 홀 넘버 선택 드롭다운
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("홀 넘버")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
+                    // 홀 넘버 선택 드롭다운
                     if let selectedCourse = getSelectedCourse() {
-                        Menu {
-                            ForEach(golfCourseService.getAvailableHoles(for: selectedCourse), id: \.id) { hole in
-                                Button("\(hole.num)번 홀") {
-                                    // 홀 선택은 확인 버튼에서 처리
-                                }
-                            }
-                        } label: {
-                            HStack {
-                                Text("홀을 선택하세요")
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Image(systemName: "chevron.down")
-                                    .foregroundColor(.blue)
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(10)
-                        }
-                        .disabled(selectedCourseName.isEmpty)
+                        dropdownSection(
+                            title: "홀 넘버",
+                            selectedValue: "",
+                            placeholder: "홀을 선택하세요",
+                            options: golfCourseService.getAvailableHoles(for: selectedCourse).map { "\($0.num)번 홀" },
+                            onSelect: { _ in },
+                            disabled: selectedCourseName.isEmpty
+                        )
                     }
                 }
                 
                 Spacer()
                 
                 // 확인 버튼
-                Button(action: {
-                    confirmSelection()
-                }) {
+                Button(action: confirmSelection) {
                     Text("확인")
                         .font(.headline)
                         .fontWeight(.semibold)
@@ -178,6 +106,44 @@ struct InitialSetupModal: View {
         .shadow(radius: 10)
     }
     
+    // MARK: - 드롭다운 섹션
+    private func dropdownSection(
+        title: String,
+        selectedValue: String,
+        placeholder: String,
+        options: [String],
+        onSelect: @escaping (String) -> Void,
+        disabled: Bool = false
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.headline)
+                .foregroundColor(.primary)
+            
+            Menu {
+                ForEach(options, id: \.self) { option in
+                    Button(option) {
+                        onSelect(option)
+                    }
+                }
+            } label: {
+                HStack {
+                    Text(selectedValue.isEmpty ? placeholder : selectedValue)
+                        .foregroundColor(selectedValue.isEmpty ? .secondary : .primary)
+                    Spacer()
+                    Image(systemName: "chevron.down")
+                        .foregroundColor(.blue)
+                }
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(10)
+            }
+            .disabled(disabled)
+        }
+    }
+    
+    // MARK: - Helper Methods
     private func getSelectedCourse() -> Course? {
         guard !selectedCC.isEmpty, !selectedCourseName.isEmpty else { return nil }
         return golfCourseService.getAvailableCourses(for: selectedCC).first { $0.name == selectedCourseName }
@@ -190,7 +156,7 @@ struct InitialSetupModal: View {
     private func confirmSelection() {
         guard let course = getSelectedCourse() else { return }
         
-        // 첫 번째 홀을 기본값으로 설정 (사용자가 홀을 선택하지 않은 경우)
+        // 첫 번째 홀을 기본값으로 설정
         let hole = golfCourseService.getAvailableHoles(for: course).first ?? course.holes[0]
         
         selectedCourse = course

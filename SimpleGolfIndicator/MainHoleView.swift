@@ -38,7 +38,14 @@ struct MainHoleView: View {
                     // 상단 정보 바
                     HStack {
                         // 왼쪽 위 - 고도차
-                        elevationView
+                        InfoCard {
+                            InfoDisplayView(
+                                title: "고도차",
+                                value: "\(abs(getCurrentHole().elevation))m",
+                                icon: getCurrentHole().elevation >= 0 ? "arrow.up" : "arrow.down",
+                                iconColor: getCurrentHole().elevation >= 0 ? .green : .red
+                            )
+                        }
                         
                         Spacer()
                         
@@ -48,7 +55,14 @@ struct MainHoleView: View {
                         Spacer()
                         
                         // 오른쪽 위 - 거리
-                        distanceView
+                        InfoCard {
+                            InfoDisplayView(
+                                title: "거리",
+                                value: "\(getCurrentHole().distance)m",
+                                icon: "ruler",
+                                iconColor: .green
+                            )
+                        }
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 10)
@@ -216,60 +230,6 @@ struct MainHoleView: View {
         }
     }
     
-    // MARK: - 고도차 뷰
-    private var elevationView: some View {
-        VStack(spacing: 8) {
-            Text("고도차")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            HStack(spacing: 4) {
-                Image(systemName: getCurrentHole().elevation >= 0 ? "arrow.up" : "arrow.down")
-                    .foregroundColor(getCurrentHole().elevation >= 0 ? .green : .red)
-                    .font(.caption)
-                
-                Text("\(abs(getCurrentHole().elevation))m")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-            }
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 15)
-                .fill(Color(.systemBackground).opacity(0.9))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 15)
-                        .stroke(Color(.systemGray4), lineWidth: 1)
-                )
-        )
-        .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
-    }
-    
-    // MARK: - 거리 뷰
-    private var distanceView: some View {
-        VStack(spacing: 8) {
-            Text("거리")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Text("\(getCurrentHole().distance)m")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 15)
-                .fill(Color(.systemBackground).opacity(0.9))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 15)
-                        .stroke(Color(.systemGray4), lineWidth: 1)
-                )
-        )
-        .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
-    }
-    
     // MARK: - 홀 이미지 뷰
     private var holeImageView: some View {
         Group {
@@ -329,73 +289,23 @@ struct MainHoleView: View {
     }
     
     private var placeholderHoleView: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 20)
-                .fill(
-                    LinearGradient(
-                        colors: [Color.green.opacity(0.4), Color.green.opacity(0.2)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.green.opacity(0.6), lineWidth: 2)
-                )
-            
-            VStack(spacing: 15) {
-                Image(systemName: "flag.filled")
-                    .font(.system(size: 60))
-                    .foregroundColor(.red)
-                    .shadow(radius: 3)
-                
-                Text("\(getCurrentHole().num)번 홀")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-                    .shadow(radius: 2)
-                
-                Text("파 \(getCurrentHole().par)")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                    .shadow(radius: 1)
-            }
-        }
+        ImagePlaceholderView(
+            icon: "flag.filled",
+            title: "\(getCurrentHole().num)번 홀",
+            subtitle: "파 \(getCurrentHole().par)",
+            backgroundColor: .green,
+            iconColor: .red
+        )
     }
     
     private var placeholderGreenView: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 20)
-                .fill(
-                    LinearGradient(
-                        colors: [Color.blue.opacity(0.4), Color.blue.opacity(0.2)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.blue.opacity(0.6), lineWidth: 2)
-                )
-            
-            VStack(spacing: 15) {
-                Image(systemName: "circle.grid.3x3")
-                    .font(.system(size: 60))
-                    .foregroundColor(.blue)
-                    .shadow(radius: 3)
-                
-                Text("그린")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-                    .shadow(radius: 2)
-                
-                Text("\(getCurrentHole().num)번 홀")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                    .shadow(radius: 1)
-            }
-        }
+        ImagePlaceholderView(
+            icon: "circle.grid.3x3",
+            title: "그린",
+            subtitle: "\(getCurrentHole().num)번 홀",
+            backgroundColor: .blue,
+            iconColor: .blue
+        )
     }
     
     // MARK: - 풍향 풍속 뷰
@@ -412,7 +322,7 @@ struct MainHoleView: View {
                 // 향상된 눈금
                 EnhancedTickMarks(color: .blue, size: 80)
                 
-                // 커스텀 풍향 화살표
+                // 커스텀 풍향 화살표 (부드러운 회전)
                 WindArrow(direction: getWindArrowRotation(), size: 50)
             }
             
@@ -476,26 +386,8 @@ struct MainHoleView: View {
     private func getWindArrowRotation() -> Double {
         guard let weather = weatherService.weatherData else { return 0 }
         
-        switch weather.windDirection {
-        case "북":
-            return 0
-        case "북동":
-            return 45
-        case "동":
-            return 90
-        case "남동":
-            return 135
-        case "남":
-            return 180
-        case "남서":
-            return 225
-        case "서":
-            return 270
-        case "북서":
-            return 315
-        default:
-            return 0
-        }
+        // 원본 풍향 각도를 사용하여 부드러운 회전
+        return weather.rawWindDegrees
     }
     
     private func loadWeatherData() {

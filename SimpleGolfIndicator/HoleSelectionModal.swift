@@ -45,40 +45,14 @@ struct HoleSelectionModal: View {
                 // 홀 선택 그리드
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 15) {
                     ForEach(Array(selectedCourse.holes.enumerated()), id: \.element.id) { index, hole in
-                        Button(action: {
-                            selectedHoleIndex = index
-                        }) {
-                            VStack(spacing: 8) {
-                                ZStack {
-                                    Circle()
-                                        .fill(selectedHoleIndex == index ? Color.blue : Color.gray.opacity(0.3))
-                                        .frame(width: 60, height: 60)
-                                    
-                                    Text("\(hole.num)")
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(selectedHoleIndex == index ? .white : .primary)
-                                }
-                                
-                                Text("\(hole.distance)m")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                
-                                Text("파 \(hole.par)")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        .buttonStyle(PlainButtonStyle())
+                        holeButton(index: index, hole: hole)
                     }
                 }
                 
                 Spacer()
                 
                 // 확인 버튼
-                Button(action: {
-                    confirmSelection()
-                }) {
+                Button(action: confirmSelection) {
                     Text("확인")
                         .font(.headline)
                         .fontWeight(.semibold)
@@ -108,6 +82,36 @@ struct HoleSelectionModal: View {
         )
     }
     
+    // MARK: - 홀 버튼
+    private func holeButton(index: Int, hole: Hole) -> some View {
+        Button(action: {
+            selectedHoleIndex = index
+        }) {
+            VStack(spacing: 8) {
+                ZStack {
+                    Circle()
+                        .fill(selectedHoleIndex == index ? Color.blue : Color.gray.opacity(0.3))
+                        .frame(width: 60, height: 60)
+                    
+                    Text("\(hole.num)")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(selectedHoleIndex == index ? .white : .primary)
+                }
+                
+                Text("\(hole.distance)m")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Text("파 \(hole.par)")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+    
+    // MARK: - Helper Methods
     private func confirmSelection() {
         // 선택된 홀로 이동하는 로직은 MainHoleView에서 처리
         isPresented = false

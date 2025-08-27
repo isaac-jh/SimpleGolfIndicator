@@ -26,8 +26,6 @@ struct Hole: Identifiable, Codable {
     let elevation: Int
     let holeImage: String?
     let greenImage: String?
-    
-    var number: Int { num }
 }
 
 struct Location: Codable {
@@ -35,36 +33,17 @@ struct Location: Codable {
     let longitude: Double
 }
 
-// MARK: - Sample Data for Preview
+// MARK: - Preview용 최소 샘플 데이터
 extension GolfCourse {
     static let sampleData = GolfCourse(
         name: "부여CC",
         courses: [
             Course(
                 name: "SKY",
-                holes: Array(1...9).map { holeNum in
-                    Hole(
-                        num: holeNum,
-                        par: 3 + (holeNum % 3),
-                        distance: 300 + (holeNum % 4) * 50,
-                        elevation: 5 + (holeNum % 4) * 2,
-                        holeImage: nil,
-                        greenImage: nil
-                    )
-                }
-            ),
-            Course(
-                name: "OCEAN",
-                holes: Array(1...9).map { holeNum in
-                    Hole(
-                        num: holeNum,
-                        par: 3 + (holeNum % 3),
-                        distance: 320 + (holeNum % 4) * 55,
-                        elevation: 3 + (holeNum % 4) * 3,
-                        holeImage: nil,
-                        greenImage: nil
-                    )
-                }
+                holes: [
+                    Hole(num: 1, par: 4, distance: 375, elevation: 22, holeImage: nil, greenImage: nil),
+                    Hole(num: 2, par: 5, distance: 450, elevation: 15, holeImage: nil, greenImage: nil)
+                ]
             )
         ],
         location: Location(latitude: 36.2754, longitude: 126.9094)

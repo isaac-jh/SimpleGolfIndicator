@@ -44,9 +44,11 @@ struct WeatherData {
     let humidity: Double
     let description: String
     let feelsLike: Double
+    let rawWindDegrees: Double // 원본 풍향 각도 (부드러운 회전용)
     
     init(from openWeather: OpenWeatherResponse) {
         self.temperature = openWeather.main.temp - 273.15 // Kelvin to Celsius
+        self.rawWindDegrees = openWeather.wind.deg
         self.windDirection = Self.getWindDirection(openWeather.wind.deg)
         self.windSpeed = openWeather.wind.speed
         self.humidity = Double(openWeather.main.humidity)
@@ -55,28 +57,6 @@ struct WeatherData {
     }
     
     private static func getWindDirection(_ degrees: Double) -> String {
-        let normalizedDegrees = degrees.truncatingRemainder(dividingBy: 360)
-        let positiveDegrees = normalizedDegrees < 0 ? normalizedDegrees + 360 : normalizedDegrees
-        
-        switch positiveDegrees {
-        case 0..<22.5, 337.5..<360:
-            return "북"
-        case 22.5..<67.5:
-            return "북동"
-        case 67.5..<112.5:
-            return "동"
-        case 112.5..<157.5:
-            return "남동"
-        case 157.5..<202.5:
-            return "남"
-        case 202.5..<247.5:
-            return "남서"
-        case 247.5..<292.5:
-            return "서"
-        case 292.5..<337.5:
-            return "북서"
-        default:
-            return "북"
-        }
+        return DirectionUtils.getDetailedDirectionName(degrees)
     }
 }
