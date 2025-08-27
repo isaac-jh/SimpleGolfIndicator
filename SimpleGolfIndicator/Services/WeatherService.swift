@@ -106,16 +106,6 @@ class WeatherService: ObservableObject {
         cache.removeObject(forKey: cacheKey as NSString)
         fetchWeatherData(for: location)
     }
-    
-    func getGolfImpact(for weatherData: WeatherData) -> String {
-        if weatherData.windSpeed > 10 {
-            return "강풍으로 인해 공의 궤적에 큰 영향"
-        } else if weatherData.windSpeed > 5 {
-            return "중간 바람으로 인해 공의 궤적에 영향"
-        } else {
-            return "약한 바람으로 인해 공의 궤적에 적은 영향"
-        }
-    }
 }
 
 // MARK: - Cache Data Structure

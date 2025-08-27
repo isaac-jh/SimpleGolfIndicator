@@ -92,33 +92,3 @@ struct DirectionUtils {
         return normalizeDegrees(interpolated)
     }
 }
-
-// MARK: - 골프 관련 방향 팁
-struct GolfDirectionTips {
-    static let tips = [
-        "북쪽을 향해 샷할 때는 바람의 영향을 고려하세요",
-        "동쪽 바람은 공을 오른쪽으로 밀어냅니다",
-        "서쪽 바람은 공을 왼쪽으로 밀어냅니다",
-        "남쪽 바람은 공을 뒤로 밀어냅니다",
-        "바람이 강할 때는 클럽 선택을 한 단계 낮추세요"
-    ]
-    
-    static func getRandomTip() -> String {
-        tips.randomElement() ?? tips[0]
-    }
-    
-    static func getTipForDirection(_ direction: String) -> String {
-        switch direction {
-        case "북":
-            return "북쪽 바람은 공을 앞으로 밀어냅니다. 클럽을 한 단계 낮추세요."
-        case "동":
-            return "동쪽 바람은 공을 오른쪽으로 밀어냅니다. 왼쪽으로 조준하세요."
-        case "남":
-            return "남쪽 바람은 공을 뒤로 밀어냅니다. 클럽을 한 단계 높이세요."
-        case "서":
-            return "서쪽 바람은 공을 왼쪽으로 밀어냅니다. 오른쪽으로 조준하세요."
-        default:
-            return getRandomTip()
-        }
-    }
-}
