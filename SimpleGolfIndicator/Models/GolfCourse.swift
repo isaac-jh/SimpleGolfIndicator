@@ -1,41 +1,72 @@
 import Foundation
 import CoreLocation
 
-struct GolfCourse: Identifiable, Hashable {
+struct GolfCourse: Identifiable, Codable {
     let id = UUID()
     let name: String
-    let cc: String
-    let location: CLLocationCoordinate2D
+    let courses: [Course]
+    let location: Location
     
-    static let sampleCourses = [
-        GolfCourse(name: "부여 CC", cc: "부여 CC", location: CLLocationCoordinate2D(latitude: 36.2754, longitude: 126.9094)),
-        GolfCourse(name: "SKY", cc: "SKY", location: CLLocationCoordinate2D(latitude: 37.5665, longitude: 126.9780)),
-        GolfCourse(name: "서울 CC", cc: "서울 CC", location: CLLocationCoordinate2D(latitude: 37.5665, longitude: 126.9780)),
-        GolfCourse(name: "부산 CC", cc: "부산 CC", location: CLLocationCoordinate2D(latitude: 35.1796, longitude: 129.0756))
-    ]
+    var coordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude)
+    }
 }
 
-struct Hole: Identifiable {
+struct Course: Identifiable, Codable {
     let id = UUID()
-    let number: Int
+    let name: String
+    let holes: [Hole]
+}
+
+struct Hole: Identifiable, Codable {
+    let id = UUID()
+    let num: Int
     let par: Int
-    let distance: [String: Int] // 티 색상별 거리
+    let distance: Int
     let elevation: Int
-    let hazards: [String]
+    let holeImage: String?
+    let greenImage: String?
     
-    static let sampleHoles = Array(1...18).map { holeNumber in
-        Hole(
-            number: holeNumber,
-            par: 3 + (holeNumber % 3),
-            distance: [
-                "Red": 120 + (holeNumber % 4) * 20,
-                "Yellow": 140 + (holeNumber % 4) * 25,
-                "White": 160 + (holeNumber % 4) * 30,
-                "Blue": 180 + (holeNumber % 4) * 35,
-                "Black": 200 + (holeNumber % 4) * 40
-            ],
-            elevation: 5 + (holeNumber % 4) * 2,
-            hazards: ["벙커", "워터해저드", "나무"].shuffled().prefix(2).map { $0 }
-        )
-    }
+    var number: Int { num }
+}
+
+struct Location: Codable {
+    let latitude: Double
+    let longitude: Double
+}
+
+// MARK: - Sample Data for Preview
+extension GolfCourse {
+    static let sampleData = GolfCourse(
+        name: "부여CC",
+        courses: [
+            Course(
+                name: "SKY",
+                holes: Array(1...9).map { holeNum in
+                    Hole(
+                        num: holeNum,
+                        par: 3 + (holeNum % 3),
+                        distance: 300 + (holeNum % 4) * 50,
+                        elevation: 5 + (holeNum % 4) * 2,
+                        holeImage: nil,
+                        greenImage: nil
+                    )
+                }
+            ),
+            Course(
+                name: "OCEAN",
+                holes: Array(1...9).map { holeNum in
+                    Hole(
+                        num: holeNum,
+                        par: 3 + (holeNum % 3),
+                        distance: 320 + (holeNum % 4) * 55,
+                        elevation: 3 + (holeNum % 4) * 3,
+                        holeImage: nil,
+                        greenImage: nil
+                    )
+                }
+            )
+        ],
+        location: Location(latitude: 36.2754, longitude: 126.9094)
+    )
 }

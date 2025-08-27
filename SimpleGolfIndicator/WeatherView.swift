@@ -2,7 +2,7 @@ import SwiftUI
 import CoreLocation
 
 struct WeatherView: View {
-    let selectedCourse: GolfCourse
+    let selectedCourse: Course
     @State private var weatherData: WeatherData?
     @State private var isLoading = false
     
@@ -15,11 +15,8 @@ struct WeatherView: View {
                         .font(.title2)
                         .fontWeight(.bold)
                     
-                    Text("위도: \(String(format: "%.4f", selectedCourse.location.latitude))")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Text("경도: \(String(format: "%.4f", selectedCourse.location.longitude))")
+                    // 부모 골프장의 위치 정보를 표시하려면 추가 구조가 필요
+                    Text("위치 정보")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -134,7 +131,7 @@ struct WeatherView: View {
         isLoading = true
         
         // 실제 날씨 API 호출 대신 샘플 데이터 사용
-        // 실제 구현 시에는 selectedCourse.location을 사용하여 API 호출
+        // 실제 구현 시에는 골프장의 위치 정보를 사용하여 API 호출
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             weatherData = WeatherData(
                 temperature: 22.5,
@@ -155,5 +152,5 @@ struct WeatherData {
 }
 
 #Preview {
-    WeatherView(selectedCourse: GolfCourse.sampleCourses[0])
+    WeatherView(selectedCourse: GolfCourse.sampleData.courses[0])
 }

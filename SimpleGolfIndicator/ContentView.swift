@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct ContentView: View {
-    let selectedCourse: GolfCourse
-    let selectedHole: Int
+    let selectedCourse: Course
+    let selectedHole: Hole
     
     var body: some View {
         NavigationView {
@@ -13,7 +13,7 @@ struct ContentView: View {
                         .font(.headline)
                         .fontWeight(.semibold)
                     
-                    Text("\(selectedHole)번 홀")
+                    Text("\(selectedHole.num)번 홀")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -69,7 +69,7 @@ struct ContentView: View {
 
 #Preview {
     ContentView(
-        selectedCourse: GolfCourse.sampleCourses[0],
-        selectedHole: 1
+        selectedCourse: GolfCourse.sampleData.courses[0],
+        selectedHole: GolfCourse.sampleData.courses[0].holes[0]
     )
 }

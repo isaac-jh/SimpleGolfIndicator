@@ -11,13 +11,13 @@ struct SimpleGolfIndicatorApp: App {
 
 struct MainAppView: View {
     @State private var showInitialModal = true
-    @State private var selectedCourse: GolfCourse?
-    @State private var selectedHole = 1
+    @State private var selectedCourse: Course?
+    @State private var selectedHole: Hole?
     
     var body: some View {
         ZStack {
-            if let course = selectedCourse {
-                ContentView(selectedCourse: course, selectedHole: selectedHole)
+            if let course = selectedCourse, let hole = selectedHole {
+                ContentView(selectedCourse: course, selectedHole: hole)
             } else {
                 // 초기 로딩 화면
                 VStack {

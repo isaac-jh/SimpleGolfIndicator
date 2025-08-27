@@ -1,12 +1,8 @@
 import SwiftUI
 
 struct CourseInfoView: View {
-    let selectedCourse: GolfCourse
-    let selectedHole: Int
-    
-    @State private var selectedTee = "White"
-    
-    private let teeColors = ["Red", "Yellow", "White", "Blue", "Black"]
+    let selectedCourse: Course
+    let selectedHole: Hole
     
     var body: some View {
         ScrollView {
@@ -17,7 +13,7 @@ struct CourseInfoView: View {
                         .font(.title2)
                         .fontWeight(.bold)
                     
-                    Text("\(selectedHole)번 홀")
+                    Text("\(selectedHole.num)번 홀")
                         .font(.title3)
                         .foregroundColor(.secondary)
                 }
@@ -25,73 +21,38 @@ struct CourseInfoView: View {
                 .background(Color.green.opacity(0.1))
                 .cornerRadius(10)
                 
-                // 티 색상 선택
-                teeColorSelector
-                
                 // 홀 정보 표시
                 holeInfoView
                 
                 // 그린 정보
                 greenInfoView
+                
+                // 홀 이미지 (있는 경우)
+                if let holeImageUrl = selectedHole.holeImage {
+                    holeImageView(url: holeImageUrl)
+                }
+                
+                // 그린 이미지 (있는 경우)
+                if let greenImageUrl = selectedHole.greenImage {
+                    greenImageView(url: greenImageUrl)
+                }
             }
             .padding()
         }
         .navigationTitle("코스 정보")
     }
     
-    private var teeColorSelector: some View {
-        VStack(spacing: 10) {
-            Text("티 색상")
-                .font(.headline)
-            
-            HStack(spacing: 12) {
-                ForEach(teeColors, id: \.self) { color in
-                    Button(action: {
-                        selectedTee = color
-                    }) {
-                        Text(color)
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .frame(width: 50, height: 30)
-                            .background(selectedTee == color ? getTeeColor(color) : Color.gray.opacity(0.3))
-                            .foregroundColor(selectedTee == color ? .white : .primary)
-                            .cornerRadius(8)
-                    }
-                }
-            }
-        }
-    }
-    
-    private func getTeeColor(_ color: String) -> Color {
-        switch color {
-        case "Red":
-            return .red
-        case "Yellow":
-            return .yellow
-        case "White":
-            return .white
-        case "Blue":
-            return .blue
-        case "Black":
-            return .black
-        default:
-            return .gray
-        }
-    }
-    
     private var holeInfoView: some View {
         VStack(spacing: 15) {
-            Text("\(selectedHole)번 홀 정보")
+            Text("\(selectedHole.num)번 홀 정보")
                 .font(.title2)
                 .fontWeight(.bold)
-            
-            let holeData = getHoleData(hole: selectedHole, tee: selectedTee)
             
             VStack(spacing: 12) {
                 HStack {
                     Image(systemName: "ruler")
                         .foregroundColor(.green)
-                    Text("거리: \(holeData.distance)m")
+                    Text("거리: \(selectedHole.distance)m")
                         .font(.body)
                     Spacer()
                 }
@@ -99,7 +60,7 @@ struct CourseInfoView: View {
                 HStack {
                     Image(systemName: "arrow.up.and.down")
                         .foregroundColor(.orange)
-                    Text("고도차: \(holeData.elevation)m")
+                    Text("고도차: \(selectedHole.elevation)m")
                         .font(.body)
                     Spacer()
                 }
@@ -107,15 +68,7 @@ struct CourseInfoView: View {
                 HStack {
                     Image(systemName: "flag")
                         .foregroundColor(.red)
-                    Text("파: \(holeData.par)")
-                        .font(.body)
-                    Spacer()
-                }
-                
-                HStack {
-                    Image(systemName: "exclamationmark.triangle")
-                        .foregroundColor(.yellow)
-                    Text("위험 요소: \(holeData.hazards)")
+                    Text("파: \(selectedHole.par)")
                         .font(.body)
                     Spacer()
                 }
@@ -165,35 +118,54 @@ struct CourseInfoView: View {
         }
     }
     
-    private func getHoleData(hole: Int, tee: String) -> HoleData {
-        // Hole.sampleHoles에서 해당 홀 데이터 가져오기
-        let holeData = Hole.sampleHoles.first { $0.number == hole } ?? Hole.sampleHoles[0]
-        
-        let distance = holeData.distance[tee] ?? holeData.distance["White"] ?? 160
-        
-        return HoleData(
-            distance: distance,
-            elevation: holeData.elevation,
-            par: holeData.par,
-            hazards: holeData.hazards.joined(separator: ", ")
-        )
+    private func holeImageView(url: String) -> some View {
+        VStack(spacing: 10) {
+            Text("홀 이미지")
+                .font(.headline)
+            
+            AsyncImage(url: URL(string: url)) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .cornerRadius(10)
+            } placeholder: {
+                ProgressView()
+                    .frame(height: 200)
+            }
+        }
+        .padding()
+        .background(Color.blue.opacity(0.1))
+        .cornerRadius(10)
     }
     
-    private func getGreenData(hole: Int) -> GreenData {
+    private func greenImageView(url: String) -> some View {
+        VStack(spacing: 10) {
+            Text("그린 이미지")
+                .font(.headline)
+            
+            AsyncImage(url: URL(string: url)) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .cornerRadius(10)
+            } placeholder: {
+                ProgressView()
+                    .frame(height: 200)
+            }
+        }
+        .padding()
+        .background(Color.green.opacity(0.1))
+        .cornerRadius(10)
+    }
+    
+    private func getGreenData(hole: Hole) -> GreenData {
         // 샘플 데이터
         return GreenData(
             size: ["작음", "보통", "큼"].randomElement() ?? "보통",
-            elevation: 2 + (hole % 3),
+            elevation: 2 + (hole.num % 3),
             speed: ["느림", "보통", "빠름"].randomElement() ?? "보통"
         )
     }
-}
-
-struct HoleData {
-    let distance: Int
-    let elevation: Int
-    let par: Int
-    let hazards: String
 }
 
 struct GreenData {
@@ -204,7 +176,7 @@ struct GreenData {
 
 #Preview {
     CourseInfoView(
-        selectedCourse: GolfCourse.sampleCourses[0],
-        selectedHole: 1
+        selectedCourse: GolfCourse.sampleData.courses[0],
+        selectedHole: GolfCourse.sampleData.courses[0].holes[0]
     )
 }
