@@ -134,7 +134,7 @@ struct EnhancedTickMarks: View {
     }
 }
 
-// MARK: - 애니메이션된 원형 배경
+// MARK: - 애니메이션된 원형 배경 (흰색 배경)
 struct AnimatedCircleBackground: View {
     let color: Color
     let size: CGFloat
@@ -142,20 +142,26 @@ struct AnimatedCircleBackground: View {
     
     var body: some View {
         ZStack {
-            // 외부 원
+            // 흰색 배경 원
             Circle()
-                .stroke(color.opacity(0.2), lineWidth: 3)
+                .fill(Color.white)
+                .frame(width: size, height: size)
+                .shadow(color: .black.opacity(0.1), radius: 3, x: 0, y: 2)
+            
+            // 외부 테두리
+            Circle()
+                .stroke(color.opacity(0.3), lineWidth: 2)
                 .frame(width: size, height: size)
             
-            // 내부 원
+            // 내부 테두리
             Circle()
-                .stroke(color.opacity(0.1), lineWidth: 1)
+                .stroke(color.opacity(0.2), lineWidth: 1)
                 .frame(width: size * 0.8, height: size * 0.8)
             
             // 애니메이션된 점선 원
             Circle()
                 .stroke(
-                    color.opacity(0.3),
+                    color.opacity(0.4),
                     style: StrokeStyle(
                         lineWidth: 1,
                         dash: [4, 4]

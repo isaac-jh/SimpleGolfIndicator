@@ -1,4 +1,24 @@
 import SwiftUI
+import WatchKit
+
+// MARK: - 디바이스별 크기 조정 헬퍼
+struct DeviceSizeHelper {
+    static func isUltra() -> Bool {
+        return WKInterfaceDevice.current().screenBounds.width >= 198 // Ultra는 49mm = 198pt
+    }
+    
+    static func getFontSize(baseSize: CGFloat) -> CGFloat {
+        return isUltra() ? baseSize * 1.2 : baseSize
+    }
+    
+    static func getPadding(basePadding: CGFloat) -> CGFloat {
+        return isUltra() ? basePadding * 1.3 : basePadding
+    }
+    
+    static func getIconSize(baseSize: CGFloat) -> CGFloat {
+        return isUltra() ? baseSize * 1.15 : baseSize
+    }
+}
 
 // MARK: - 공통 카드 스타일
 struct InfoCard<Content: View>: View {
@@ -10,12 +30,12 @@ struct InfoCard<Content: View>: View {
     
     var body: some View {
         content
-            .padding()
+            .padding(DeviceSizeHelper.getPadding(basePadding: 16))
             .background(
-                RoundedRectangle(cornerRadius: 15)
+                RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 20 : 15)
                     .fill(Color(.systemBackground).opacity(0.9))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 15)
+                        RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 20 : 15)
                             .stroke(Color(.systemGray4), lineWidth: 1)
                     )
             )
@@ -31,19 +51,18 @@ struct InfoDisplayView: View {
     let iconColor: Color
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 8)) {
             Text(title)
-                .font(.caption)
+                .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .medium))
                 .foregroundColor(.secondary)
             
-            HStack(spacing: 4) {
+            HStack(spacing: DeviceSizeHelper.getPadding(basePadding: 4)) {
                 Image(systemName: icon)
                     .foregroundColor(iconColor)
-                    .font(.caption)
+                    .font(.system(size: DeviceSizeHelper.getIconSize(baseSize: 14)))
                 
                 Text(value)
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 22), weight: .bold))
                     .foregroundColor(.primary)
             }
         }
@@ -60,7 +79,7 @@ struct ImagePlaceholderView: View {
     
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 25 : 20)
                 .fill(
                     LinearGradient(
                         colors: [backgroundColor.opacity(0.4), backgroundColor.opacity(0.2)],
@@ -69,24 +88,23 @@ struct ImagePlaceholderView: View {
                     )
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 25 : 20)
                         .stroke(backgroundColor.opacity(0.6), lineWidth: 2)
                 )
             
-            VStack(spacing: 15) {
+            VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 15)) {
                 Image(systemName: icon)
-                    .font(.system(size: 60))
+                    .font(.system(size: DeviceSizeHelper.getIconSize(baseSize: 60)))
                     .foregroundColor(iconColor)
                     .shadow(radius: 3)
                 
                 Text(title)
-                    .font(.title)
-                    .fontWeight(.bold)
+                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 24), weight: .bold))
                     .foregroundColor(.primary)
                     .shadow(radius: 2)
                 
                 Text(subtitle)
-                    .font(.headline)
+                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 18), weight: .medium))
                     .foregroundColor(.secondary)
                     .shadow(radius: 1)
             }
@@ -99,16 +117,16 @@ struct LoadingView: View {
     let message: String
     
     var body: some View {
-        VStack(spacing: 15) {
+        VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 20)) {
             ProgressView()
-                .scaleEffect(1.2)
+                .scaleEffect(DeviceSizeHelper.isUltra() ? 1.2 : 1.0)
             
             Text(message)
-                .font(.headline)
+                .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 16), weight: .medium))
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(DeviceSizeHelper.getPadding(basePadding: 30))
     }
 }
 

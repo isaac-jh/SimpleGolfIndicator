@@ -1,4 +1,5 @@
 import SwiftUI
+import WatchKit
 
 struct InitialSetupModal: View {
     @Binding var isPresented: Bool
@@ -12,19 +13,18 @@ struct InitialSetupModal: View {
     @State private var selectedCourseName = ""
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 20)) {
             // 제목
-            VStack(spacing: 8) {
+            VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 8)) {
                 Image(systemName: "flag.filled")
-                    .font(.system(size: 40))
+                    .font(.system(size: DeviceSizeHelper.getIconSize(baseSize: 40)))
                     .foregroundColor(.green)
                 
                 Text("골프 인디케이터")
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 22), weight: .bold))
                 
                 Text("골프장 정보를 선택해주세요")
-                    .font(.caption)
+                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .medium))
                     .foregroundColor(.secondary)
             }
             
@@ -33,7 +33,7 @@ struct InitialSetupModal: View {
             if golfCourseService.isLoading {
                 LoadingView(message: "골프장 정보를 불러오는 중...")
             } else if let error = golfCourseService.error {
-                VStack(spacing: 15) {
+                VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 15)) {
                     ErrorView(
                         title: "데이터 로딩 실패",
                         message: error,
@@ -46,7 +46,7 @@ struct InitialSetupModal: View {
                 }
             } else {
                 // 정상 상태 - 드롭다운들
-                VStack(spacing: 20) {
+                VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 20)) {
                     // CC 선택 드롭다운
                     dropdownSection(
                         title: "CC 선택",
@@ -89,13 +89,12 @@ struct InitialSetupModal: View {
                 // 확인 버튼
                 Button(action: confirmSelection) {
                     Text("확인")
-                        .font(.headline)
-                        .fontWeight(.semibold)
+                        .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 18), weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding()
+                        .padding(DeviceSizeHelper.getPadding(basePadding: 16))
                         .background(canConfirm ? Color.green : Color.gray)
-                        .cornerRadius(10)
+                        .cornerRadius(DeviceSizeHelper.isUltra() ? 15 : 10)
                 }
                 .disabled(!canConfirm)
             }

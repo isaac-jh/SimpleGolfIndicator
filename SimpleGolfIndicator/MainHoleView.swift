@@ -112,6 +112,29 @@ struct MainHoleView: View {
                         
                         Spacer()
                         
+                        // 중앙 - 파 정보
+                        VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 4)) {
+                            Text("파")
+                                .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 10), weight: .medium))
+                                .foregroundColor(.secondary)
+                            
+                            Text("\(getCurrentHole().par)")
+                                .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 18), weight: .bold))
+                                .foregroundColor(.primary)
+                        }
+                        .padding(DeviceSizeHelper.getPadding(basePadding: 8))
+                        .background(
+                            RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 12 : 10)
+                                .fill(Color(.systemBackground).opacity(0.8))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 12 : 10)
+                                        .stroke(Color(.systemGray4), lineWidth: 0.5)
+                                )
+                        )
+                        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                        
+                        Spacer()
+                        
                         // 오른쪽 아래 - 나침반
                         compassView
                     }
@@ -258,7 +281,7 @@ struct MainHoleView: View {
                 showingGreenImage ? placeholderGreenView : placeholderHoleView
             }
         }
-        .rotationEffect(Angle(degrees: locationManager.heading?.trueHeading ?? 0))
+        .rotationEffect(Angle(degrees: -(locationManager.heading?.trueHeading ?? 0)))
         .shadow(radius: 15, x: 0, y: 8)
         .overlay(
             // 이미지 전환 힌트
@@ -272,14 +295,6 @@ struct MainHoleView: View {
                             .padding(8)
                             .background(Color.black.opacity(0.6))
                             .clipShape(Circle())
-                        
-                        Text(showingGreenImage ? "홀 이미지" : "그린 이미지")
-                            .font(.caption2)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.black.opacity(0.6))
-                            .cornerRadius(8)
                     }
                     .padding(.top, 10)
                     .padding(.trailing, 10)
@@ -309,74 +324,124 @@ struct MainHoleView: View {
         )
     }
     
-    // MARK: - 풍향 풍속 뷰
-    private var windInfoView: some View {
-        VStack(spacing: 8) {
+    // MARK: - 날씨 정보 뷰 (Ultra 최적화)
+    private var weatherInfoView: some View {
+        VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 8)) {
             Text("풍향")
-                .font(.caption)
+                .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .medium))
                 .foregroundColor(.secondary)
             
             ZStack {
                 // 애니메이션된 원형 배경
-                AnimatedCircleBackground(color: .blue, size: 80)
+                AnimatedCircleBackground(color: .blue, size: DeviceSizeHelper.isUltra() ? 90 : 80)
                 
                 // 향상된 눈금
-                EnhancedTickMarks(color: .blue, size: 80)
+                EnhancedTickMarks(color: .blue, size: DeviceSizeHelper.isUltra() ? 90 : 80)
                 
                 // 커스텀 풍향 화살표 (부드러운 회전)
-                WindArrow(direction: getWindArrowRotation(), size: 50)
+                WindArrow(direction: getWindArrowRotation(), size: DeviceSizeHelper.isUltra() ? 55 : 50)
             }
             
             if let weather = weatherService.weatherData {
                 Text("\(String(format: "%.1f", weather.windSpeed)) m/s")
-                    .font(.caption)
+                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .semibold))
                     .foregroundColor(.blue)
-                    .fontWeight(.semibold)
             }
         }
-        .padding()
+    }
+    
+    // MARK: - 방향 정보 뷰 (Ultra 최적화)
+    private var directionInfoView: some View {
+        VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 8)) {
+            Text("방향")
+                .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .medium))
+                .foregroundColor(.secondary)
+            
+            ZStack {
+                // 애니메이션된 원형 배경
+                AnimatedCircleBackground(color: .orange, size: DeviceSizeHelper.isUltra() ? 90 : 80)
+                
+                // 향상된 눈금
+                EnhancedTickMarks(color: .orange, size: DeviceSizeHelper.isUltra() ? 90 : 80)
+                
+                // 커스텀 나침반 바늘
+                CompassNeedle(heading: locationManager.heading?.trueHeading ?? 0, size: DeviceSizeHelper.isUltra() ? 55 : 50)
+            }
+            
+            if let heading = locationManager.heading {
+                Text("\(String(format: "%.0f", heading.trueHeading))°")
+                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .semibold))
+                    .foregroundColor(.orange)
+            }
+        }
+    }
+    
+    // MARK: - 풍향 풍속 뷰 (기존 버전 - 하위 호환성)
+    private var windInfoView: some View {
+        VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 8)) {
+            Text("풍향")
+                .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .medium))
+                .foregroundColor(.secondary)
+            
+            ZStack {
+                // 애니메이션된 원형 배경
+                AnimatedCircleBackground(color: .blue, size: DeviceSizeHelper.isUltra() ? 90 : 80)
+                
+                // 향상된 눈금
+                EnhancedTickMarks(color: .blue, size: DeviceSizeHelper.isUltra() ? 90 : 80)
+                
+                // 커스텀 풍향 화살표 (부드러운 회전)
+                WindArrow(direction: getWindArrowRotation(), size: DeviceSizeHelper.isUltra() ? 55 : 50)
+            }
+            
+            if let weather = weatherService.weatherData {
+                Text("\(String(format: "%.1f", weather.windSpeed)) m/s")
+                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .semibold))
+                    .foregroundColor(.blue)
+            }
+        }
+        .padding(DeviceSizeHelper.getPadding(basePadding: 16))
         .background(
-            RoundedRectangle(cornerRadius: 15)
+            RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 20 : 15)
                 .fill(Color(.systemBackground).opacity(0.9))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 15)
+                    RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 20 : 15)
                         .stroke(Color(.systemGray4), lineWidth: 1)
                 )
         )
         .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
     }
     
-    // MARK: - 나침반 뷰
+    // MARK: - 나침반 뷰 (기존 버전 - 하위 호환성)
     private var compassView: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 8)) {
             Text("방향")
-                .font(.caption)
+                .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .medium))
                 .foregroundColor(.secondary)
             
             ZStack {
                 // 애니메이션된 원형 배경
-                AnimatedCircleBackground(color: .orange, size: 80)
+                AnimatedCircleBackground(color: .orange, size: DeviceSizeHelper.isUltra() ? 90 : 80)
                 
                 // 향상된 눈금
-                EnhancedTickMarks(color: .orange, size: 80)
+                EnhancedTickMarks(color: .orange, size: DeviceSizeHelper.isUltra() ? 90 : 80)
                 
                 // 커스텀 나침반 바늘
-                CompassNeedle(heading: locationManager.heading?.trueHeading ?? 0, size: 50)
+                CompassNeedle(heading: locationManager.heading?.trueHeading ?? 0, size: DeviceSizeHelper.isUltra() ? 55 : 50)
             }
             
             if let heading = locationManager.heading {
                 Text("\(String(format: "%.0f", heading.trueHeading))°")
-                    .font(.caption)
+                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .semibold))
                     .foregroundColor(.orange)
-                    .fontWeight(.semibold)
             }
         }
-        .padding()
+        .padding(DeviceSizeHelper.getPadding(basePadding: 16))
         .background(
-            RoundedRectangle(cornerRadius: 15)
+            RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 20 : 15)
                 .fill(Color(.systemBackground).opacity(0.9))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 15)
+                    RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 20 : 15)
                         .stroke(Color(.systemGray4), lineWidth: 1)
                 )
         )
