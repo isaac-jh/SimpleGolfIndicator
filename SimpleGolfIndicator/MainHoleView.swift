@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreLocation
+import WatchKit
 
 struct MainHoleView: View {
     let selectedCourse: Course
@@ -11,8 +12,8 @@ struct MainHoleView: View {
     
     // 상태 변수들
     @State private var showModal = false
+    @State private var showGreenModal = false
     @State private var currentHoleIndex: Int
-    @State private var showingGreenImage = false
     @State private var dragOffset = CGSize.zero
     
     init(selectedCourse: Course, selectedHole: Hole, selectedGolfCourse: GolfCourse) {
@@ -34,58 +35,83 @@ struct MainHoleView: View {
                 // 잔디 배경
                 GrassBackground()
                 
-                VStack(spacing: 0) {
-                    // 상단 정보 바
-                    HStack {
-                        // 왼쪽 위 - 고도차
+                HStack(spacing: 0) {
+                    // 왼쪽 영역 - 정보 카드들
+                    VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 12)) {
+                        // 코스 정보
                         InfoCard {
-                            InfoDisplayView(
-                                title: "고도차",
-                                value: "\(abs(getCurrentHole().elevation))m",
-                                icon: getCurrentHole().elevation >= 0 ? "arrow.up" : "arrow.down",
-                                iconColor: getCurrentHole().elevation >= 0 ? .green : .red
-                            )
+                            VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 4)) {
+                                Text(selectedCourse.name)
+                                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 14), weight: .bold))
+                                    .foregroundColor(.primary)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
+                                
+                                Text("\(getCurrentHole().num)홀")
+                                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .medium))
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
+                            }
+                        }
+                        
+                        // 파 정보
+                        InfoCard {
+                            VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 4)) {
+                                Text("Par \(getCurrentHole().par)")
+                                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 16), weight: .bold))
+                                    .foregroundColor(.primary)
+                            }
+                        }
+                        
+                        // 거리 정보
+                        InfoCard {
+                            VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 4)) {
+                                Text("\(getCurrentHole().distance)m")
+                                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 18), weight: .bold))
+                                    .foregroundColor(.primary)
+                            }
+                        }
+                        
+                        // 고도차 정보
+                        InfoCard {
+                            VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 4)) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: getCurrentHole().elevation >= 0 ? "arrow.up" : "arrow.down")
+                                        .foregroundColor(getCurrentHole().elevation >= 0 ? Color(red: 0.8, green: 0.2, blue: 0.2) : Color(red: 0.4, green: 0.6, blue: 0.9))
+                                        .font(.system(size: DeviceSizeHelper.getIconSize(baseSize: 12)))
+                                    
+                                    Text("\(abs(getCurrentHole().elevation))m")
+                                        .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 18), weight: .bold))
+                                        .foregroundColor(getCurrentHole().elevation >= 0 ? Color(red: 0.8, green: 0.2, blue: 0.2) : Color(red: 0.4, green: 0.6, blue: 0.9))
+                                }
+                            }
                         }
                         
                         Spacer()
                         
-                        // 중앙 - 코스 이름
-                        courseNameView
-                        
-                        Spacer()
-                        
-                        // 오른쪽 위 - 거리
-                        InfoCard {
-                            InfoDisplayView(
-                                title: "거리",
-                                value: "\(getCurrentHole().distance)m",
-                                icon: "ruler",
-                                iconColor: .green
-                            )
-                        }
+                        // 통합 나침반/풍향 뷰
+                        IntegratedCompassWindView(
+                            heading: locationManager.heading?.trueHeading ?? 0,
+                            windDirection: getWindArrowRotation(),
+                            windSpeed: weatherService.weatherData?.windSpeed ?? 0.0,
+                            size: geometry.size.width * 0.3
+                        )
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 10)
+                    .frame(width: geometry.size.width * 0.35)
+                    .padding(.leading, DeviceSizeHelper.getPadding(basePadding: 10))
+                    .padding(.top, DeviceSizeHelper.getPadding(basePadding: 10))
+                    .padding(.trailing, DeviceSizeHelper.getPadding(basePadding: 5))
                     
-                    Spacer()
-                    
-                    // 중앙 홀 이미지 (제스처 적용)
+                    // 오른쪽 영역 - 홀 이미지
                     ZStack {
-                        // 홀 넘버 배경 (이미지 뒷쪽)
-                        Text("\(getCurrentHole().num)")
-                            .font(.system(size: 120, weight: .bold, design: .rounded))
-                            .foregroundColor(.white.opacity(0.6))
-                            .shadow(color: .black.opacity(0.3), radius: 5, x: 2, y: 2)
-                        
                         // 홀 이미지
                         holeImageView
-                            .frame(width: geometry.size.width * 0.8, height: geometry.size.height * 0.5)
+                            .frame(width: geometry.size.width * 0.65, height: geometry.size.height)
                             .gesture(
                                 TapGesture()
                                     .onEnded {
-                                        withAnimation(.easeInOut(duration: 0.3)) {
-                                            showingGreenImage.toggle()
-                                        }
+                                        showGreenModal = true
                                     }
                             )
                             .offset(dragOffset)
@@ -102,59 +128,26 @@ struct MainHoleView: View {
                                     }
                             )
                     }
-                    
-                    Spacer()
-                    
-                    // 하단 정보 바
-                    HStack {
-                        // 왼쪽 아래 - 풍향 풍속
-                        windInfoView
-                        
-                        Spacer()
-                        
-                        // 중앙 - 파 정보
-                        VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 4)) {
-                            Text("파")
-                                .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 10), weight: .medium))
-                                .foregroundColor(.secondary)
-                            
-                            Text("\(getCurrentHole().par)")
-                                .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 18), weight: .bold))
-                                .foregroundColor(.primary)
-                        }
-                        .padding(DeviceSizeHelper.getPadding(basePadding: 8))
-                        .background(
-                            RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 12 : 10)
-                                .fill(Color(.systemBackground).opacity(0.8))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 12 : 10)
-                                        .stroke(Color(.systemGray4), lineWidth: 0.5)
-                                )
-                        )
-                        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
-                        
-                        Spacer()
-                        
-                        // 오른쪽 아래 - 나침반
-                        compassView
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 10)
+                    .frame(width: geometry.size.width * 0.65)
+                    .padding(.leading, DeviceSizeHelper.getPadding(basePadding: 5))
+                    .padding(.top, DeviceSizeHelper.getPadding(basePadding: 10))
                 }
-                
-                // 위로 스와이프 제스처 감지 영역
-                Rectangle()
-                    .fill(Color.clear)
-                    .frame(height: 100)
-                    .gesture(
-                        DragGesture()
-                            .onEnded { value in
-                                if value.translation.y < -50 && abs(value.translation.x) < 100 {
-                                    showModal = true
-                                }
-                            }
-                    )
             }
+        }
+        .sheet(isPresented: $showModal) {
+            HoleSelectionModal(
+                isPresented: $showModal,
+                selectedCourse: selectedCourse,
+                selectedHole: $selectedHole,
+                currentHoleIndex: $currentHoleIndex
+            )
+        }
+        .sheet(isPresented: $showGreenModal) {
+            GreenImageModal(
+                isPresented: $showGreenModal,
+                selectedHole: getCurrentHole(),
+                heading: locationManager.heading?.trueHeading ?? 0
+            )
         }
         .navigationTitle("\(getCurrentHole().num)번 홀")
         .navigationBarTitleDisplayMode(.inline)
@@ -165,42 +158,37 @@ struct MainHoleView: View {
         .onDisappear {
             locationManager.stopUpdatingHeading()
         }
-        .sheet(isPresented: $showModal) {
-            HoleSelectionModal(
-                isPresented: $showModal,
-                selectedCourse: selectedCourse,
-                selectedHole: Binding(
-                    get: { getCurrentHole() },
-                    set: { _ in }
-                ),
-                selectedGolfCourse: selectedGolfCourse
-            )
-        }
     }
     
-    // MARK: - 코스 이름 뷰
-    private var courseNameView: some View {
-        VStack(spacing: 4) {
-            Text("코스")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Text(selectedCourse.name)
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
+    // MARK: - 홀 이미지 뷰 (회전 효과 제거)
+    private var holeImageView: some View {
+        Group {
+            if let holeImageUrl = getCurrentHole().holeImage, !holeImageUrl.isEmpty {
+                // 홀 이미지 표시
+                AsyncImage(url: URL(string: holeImageUrl)) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .cornerRadius(20)
+                } placeholder: {
+                    placeholderHoleView
+                }
+            } else {
+                // 플레이스홀더
+                placeholderHoleView
+            }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 15)
-                .fill(Color(.systemBackground).opacity(0.9))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 15)
-                        .stroke(Color(.systemGray4), lineWidth: 1)
-                )
+        .shadow(radius: 15, x: 0, y: 8)
+    }
+    
+    private var placeholderHoleView: some View {
+        ImagePlaceholderView(
+            icon: "flag.filled",
+            title: "\(getCurrentHole().num)번 홀",
+            subtitle: "파 \(getCurrentHole().par)",
+            backgroundColor: .green,
+            iconColor: .red
         )
-        .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
     }
     
     // MARK: - 현재 홀 정보 가져오기
@@ -209,6 +197,19 @@ struct MainHoleView: View {
             return selectedHole
         }
         return selectedCourse.holes[currentHoleIndex]
+    }
+    
+    // MARK: - Helper Methods
+    private func getWindArrowRotation() -> Double {
+        guard let weather = weatherService.weatherData else { return 0 }
+        let wind = weather.rawWindDegrees
+        let heading = locationManager.heading?.trueHeading ?? 0
+        let relative = fmod((wind - heading) + 360, 360)
+        return relative
+    }
+    
+    private func loadWeatherData() {
+        weatherService.fetchWeatherData(for: selectedGolfCourse.coordinate)
     }
     
     // MARK: - 스와이프 제스처 처리
@@ -237,7 +238,6 @@ struct MainHoleView: View {
                 // 마지막 홀이면 첫 번째 홀로
                 currentHoleIndex = 0
             }
-            showingGreenImage = false
         }
     }
     
@@ -249,216 +249,7 @@ struct MainHoleView: View {
                 // 첫 번째 홀이면 마지막 홀로
                 currentHoleIndex = selectedCourse.holes.count - 1
             }
-            showingGreenImage = false
         }
-    }
-    
-    // MARK: - 홀 이미지 뷰
-    private var holeImageView: some View {
-        Group {
-            if showingGreenImage, let greenImageUrl = getCurrentHole().greenImage, !greenImageUrl.isEmpty {
-                // 그린 이미지 표시
-                AsyncImage(url: URL(string: greenImageUrl)) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .cornerRadius(20)
-                } placeholder: {
-                    placeholderGreenView
-                }
-            } else if let holeImageUrl = getCurrentHole().holeImage, !holeImageUrl.isEmpty {
-                // 홀 이미지 표시
-                AsyncImage(url: URL(string: holeImageUrl)) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .cornerRadius(20)
-                } placeholder: {
-                    placeholderHoleView
-                }
-            } else {
-                // 플레이스홀더
-                showingGreenImage ? placeholderGreenView : placeholderHoleView
-            }
-        }
-        .rotationEffect(Angle(degrees: -(locationManager.heading?.trueHeading ?? 0)))
-        .shadow(radius: 15, x: 0, y: 8)
-        .overlay(
-            // 이미지 전환 힌트
-            VStack {
-                HStack {
-                    Spacer()
-                    VStack {
-                        Image(systemName: showingGreenImage ? "flag.filled" : "circle.grid.3x3")
-                            .font(.system(size: 20))
-                            .foregroundColor(.white)
-                            .padding(8)
-                            .background(Color.black.opacity(0.6))
-                            .clipShape(Circle())
-                    }
-                    .padding(.top, 10)
-                    .padding(.trailing, 10)
-                }
-                Spacer()
-            }
-        )
-    }
-    
-    private var placeholderHoleView: some View {
-        ImagePlaceholderView(
-            icon: "flag.filled",
-            title: "\(getCurrentHole().num)번 홀",
-            subtitle: "파 \(getCurrentHole().par)",
-            backgroundColor: .green,
-            iconColor: .red
-        )
-    }
-    
-    private var placeholderGreenView: some View {
-        ImagePlaceholderView(
-            icon: "circle.grid.3x3",
-            title: "그린",
-            subtitle: "\(getCurrentHole().num)번 홀",
-            backgroundColor: .blue,
-            iconColor: .blue
-        )
-    }
-    
-    // MARK: - 날씨 정보 뷰 (Ultra 최적화)
-    private var weatherInfoView: some View {
-        VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 8)) {
-            Text("풍향")
-                .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .medium))
-                .foregroundColor(.secondary)
-            
-            ZStack {
-                // 애니메이션된 원형 배경
-                AnimatedCircleBackground(color: .blue, size: DeviceSizeHelper.isUltra() ? 90 : 80)
-                
-                // 향상된 눈금
-                EnhancedTickMarks(color: .blue, size: DeviceSizeHelper.isUltra() ? 90 : 80)
-                
-                // 커스텀 풍향 화살표 (부드러운 회전)
-                WindArrow(direction: getWindArrowRotation(), size: DeviceSizeHelper.isUltra() ? 55 : 50)
-            }
-            
-            if let weather = weatherService.weatherData {
-                Text("\(String(format: "%.1f", weather.windSpeed)) m/s")
-                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .semibold))
-                    .foregroundColor(.blue)
-            }
-        }
-    }
-    
-    // MARK: - 방향 정보 뷰 (Ultra 최적화)
-    private var directionInfoView: some View {
-        VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 8)) {
-            Text("방향")
-                .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .medium))
-                .foregroundColor(.secondary)
-            
-            ZStack {
-                // 애니메이션된 원형 배경
-                AnimatedCircleBackground(color: .orange, size: DeviceSizeHelper.isUltra() ? 90 : 80)
-                
-                // 향상된 눈금
-                EnhancedTickMarks(color: .orange, size: DeviceSizeHelper.isUltra() ? 90 : 80)
-                
-                // 커스텀 나침반 바늘
-                CompassNeedle(heading: locationManager.heading?.trueHeading ?? 0, size: DeviceSizeHelper.isUltra() ? 55 : 50)
-            }
-            
-            if let heading = locationManager.heading {
-                Text("\(String(format: "%.0f", heading.trueHeading))°")
-                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .semibold))
-                    .foregroundColor(.orange)
-            }
-        }
-    }
-    
-    // MARK: - 풍향 풍속 뷰 (기존 버전 - 하위 호환성)
-    private var windInfoView: some View {
-        VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 8)) {
-            Text("풍향")
-                .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .medium))
-                .foregroundColor(.secondary)
-            
-            ZStack {
-                // 애니메이션된 원형 배경
-                AnimatedCircleBackground(color: .blue, size: DeviceSizeHelper.isUltra() ? 90 : 80)
-                
-                // 향상된 눈금
-                EnhancedTickMarks(color: .blue, size: DeviceSizeHelper.isUltra() ? 90 : 80)
-                
-                // 커스텀 풍향 화살표 (부드러운 회전)
-                WindArrow(direction: getWindArrowRotation(), size: DeviceSizeHelper.isUltra() ? 55 : 50)
-            }
-            
-            if let weather = weatherService.weatherData {
-                Text("\(String(format: "%.1f", weather.windSpeed)) m/s")
-                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .semibold))
-                    .foregroundColor(.blue)
-            }
-        }
-        .padding(DeviceSizeHelper.getPadding(basePadding: 16))
-        .background(
-            RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 20 : 15)
-                .fill(Color(.systemBackground).opacity(0.9))
-                .overlay(
-                    RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 20 : 15)
-                        .stroke(Color(.systemGray4), lineWidth: 1)
-                )
-        )
-        .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
-    }
-    
-    // MARK: - 나침반 뷰 (기존 버전 - 하위 호환성)
-    private var compassView: some View {
-        VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 8)) {
-            Text("방향")
-                .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .medium))
-                .foregroundColor(.secondary)
-            
-            ZStack {
-                // 애니메이션된 원형 배경
-                AnimatedCircleBackground(color: .orange, size: DeviceSizeHelper.isUltra() ? 90 : 80)
-                
-                // 향상된 눈금
-                EnhancedTickMarks(color: .orange, size: DeviceSizeHelper.isUltra() ? 90 : 80)
-                
-                // 커스텀 나침반 바늘
-                CompassNeedle(heading: locationManager.heading?.trueHeading ?? 0, size: DeviceSizeHelper.isUltra() ? 55 : 50)
-            }
-            
-            if let heading = locationManager.heading {
-                Text("\(String(format: "%.0f", heading.trueHeading))°")
-                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .semibold))
-                    .foregroundColor(.orange)
-            }
-        }
-        .padding(DeviceSizeHelper.getPadding(basePadding: 16))
-        .background(
-            RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 20 : 15)
-                .fill(Color(.systemBackground).opacity(0.9))
-                .overlay(
-                    RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 20 : 15)
-                        .stroke(Color(.systemGray4), lineWidth: 1)
-                )
-        )
-        .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
-    }
-    
-    // MARK: - Helper Methods
-    private func getWindArrowRotation() -> Double {
-        guard let weather = weatherService.weatherData else { return 0 }
-        let wind = weather.rawWindDegrees
-        let heading = locationManager.heading?.trueHeading ?? 0
-        let relative = fmod((wind - heading) + 360, 360)
-        return relative
-    }
-    
-    private func loadWeatherData() {
-        weatherService.fetchWeatherData(for: selectedGolfCourse.coordinate)
     }
 }
 
@@ -469,3 +260,5 @@ struct MainHoleView: View {
         selectedGolfCourse: GolfCourse.sampleData
     )
 }
+
+

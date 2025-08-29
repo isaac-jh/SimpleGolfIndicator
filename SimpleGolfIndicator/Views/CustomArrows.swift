@@ -92,42 +92,25 @@ struct CompassNeedle: View {
     }
 }
 
-// MARK: - 향상된 눈금 표시
+// MARK: - 향상된 눈금 (15도 간격)
 struct EnhancedTickMarks: View {
     let color: Color
     let size: CGFloat
     
     var body: some View {
         ZStack {
-            // 8방향 메인 눈금
-            ForEach(0..<8) { index in
-                let angle = Double(index) * 45.0
-                
-                VStack(spacing: 0) {
-                    // 긴 눈금
-                    Rectangle()
-                        .fill(color)
-                        .frame(width: 2, height: 12)
-                        .shadow(color: color.opacity(0.3), radius: 1)
-                    
-                    // 짧은 눈금
-                    Rectangle()
-                        .fill(color.opacity(0.6))
-                        .frame(width: 1, height: 6)
-                        .offset(y: 2)
-                }
-                .offset(y: -size/2 + 8)
-                .rotationEffect(.degrees(angle))
-            }
-            
-            // 4방향 보조 눈금
-            ForEach(0..<4) { index in
-                let angle = Double(index) * 90.0
+            // 15도마다 눈금 (24개)
+            ForEach(0..<24, id: \.self) { index in
+                let angle = Double(index) * 15.0
+                let isMajor = index % 3 == 0 // 45도마다 주요 눈금
                 
                 Rectangle()
-                    .fill(color.opacity(0.4))
-                    .frame(width: 3, height: 16)
-                    .offset(y: -size/2 + 6)
+                    .fill(color)
+                    .frame(
+                        width: 1,
+                        height: isMajor ? 8 : 4
+                    )
+                    .offset(y: -size * 0.4)
                     .rotationEffect(.degrees(angle))
             }
         }
@@ -177,6 +160,56 @@ struct AnimatedCircleBackground: View {
         }
         .onAppear {
             isAnimating = true
+        }
+    }
+}
+
+// MARK: - 통합 나침반/풍향 뷰
+struct IntegratedCompassWindView: View {
+    let heading: Double
+    let windDirection: Double
+    let windSpeed: Double
+    let size: CGFloat
+    
+    var body: some View {
+        ZStack {
+            // 흰색 원형 배경
+            Circle()
+                .fill(Color.white)
+                .frame(width: size, height: size)
+                .shadow(color: .black.opacity(0.1), radius: 3, x: 0, y: 2)
+            
+            // 외부 테두리
+            Circle()
+                .stroke(Color.orange.opacity(0.3), lineWidth: 2)
+                .frame(width: size, height: size)
+            
+            // 내부 테두리
+            Circle()
+                .stroke(Color.orange.opacity(0.2), lineWidth: 1)
+                .frame(width: size * 0.8, height: size * 0.8)
+            
+            // 향상된 눈금 (검정색)
+            EnhancedTickMarks(color: .black, size: size)
+            
+            // 나침반 바늘
+            CompassNeedle(heading: heading, size: size * 0.6)
+            
+            // 풍향 화살표 (나침반 바늘 위에)
+            WindArrow(direction: windDirection, size: size * 0.4)
+            
+            // 풍속 숫자 (중앙에 배치)
+            VStack(spacing: 2) {
+                Text("\(String(format: "%.1f", windSpeed))")
+                    .font(.system(size: size * 0.12, weight: .bold))
+                    .foregroundColor(.blue)
+                    .shadow(color: .black.opacity(0.3), radius: 2, x: 1, y: 1)
+                
+                Text("m/s")
+                    .font(.system(size: size * 0.06, weight: .medium))
+                    .foregroundColor(.blue.opacity(0.8))
+                    .shadow(color: .black.opacity(0.2), radius: 1, x: 0.5, y: 0.5)
+            }
         }
     }
 }
