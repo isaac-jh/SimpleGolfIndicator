@@ -163,16 +163,12 @@ struct MainHoleView: View {
     // MARK: - 홀 이미지 뷰 (회전 효과 제거)
     private var holeImageView: some View {
         Group {
-            if let holeImageUrl = getCurrentHole().holeImage, !holeImageUrl.isEmpty {
-                // 홀 이미지 표시
-                AsyncImage(url: URL(string: holeImageUrl)) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .cornerRadius(20)
-                } placeholder: {
-                    placeholderHoleView
-                }
+            if !getCurrentHole().holeImage.isEmpty {
+                // 홀 이미지 표시 (번들 이미지)
+                Image(getCurrentHole().holeImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .cornerRadius(20)
             } else {
                 // 플레이스홀더
                 placeholderHoleView

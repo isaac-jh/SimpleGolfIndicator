@@ -24,8 +24,8 @@ struct Hole: Identifiable, Codable {
     let par: Int
     let distance: Int
     let elevation: Int
-    let holeImage: String?
-    let greenImage: String?
+    let holeImage: String // 번들 이미지 이름 (예: "hole_1_1")
+    let greenImage: String // 번들 이미지 이름 (예: "green_1_1")
 }
 
 struct Location: Codable {
@@ -41,8 +41,15 @@ extension GolfCourse {
             Course(
                 name: "SKY",
                 holes: [
-                    Hole(num: 1, par: 4, distance: 375, elevation: 22, holeImage: nil, greenImage: nil),
-                    Hole(num: 2, par: 5, distance: 450, elevation: 15, holeImage: nil, greenImage: nil)
+                    Hole(num: 1, par: 4, distance: 375, elevation: 22, holeImage: "sky_1", greenImage: "sky_g_1"),
+                    Hole(num: 2, par: 5, distance: 450, elevation: 15, holeImage: "sky_2", greenImage: "sky_g_2")
+                ]
+            ),
+            Course(
+                name: "HILL",
+                holes: [
+                    Hole(num: 1, par: 4, distance: 380, elevation: 18, holeImage: "hill_1", greenImage: "hill_g_1"),
+                    Hole(num: 2, par: 3, distance: 320, elevation: 25, holeImage: "hill_2", greenImage: "hill_g_2")
                 ]
             )
         ],

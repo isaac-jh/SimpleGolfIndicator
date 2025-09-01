@@ -45,18 +45,13 @@ struct GreenImageModal: View {
     // MARK: - 그린 이미지 뷰 (나침반 방향에 따라 회전)
     private var greenImageView: some View {
         Group {
-            if let greenImageUrl = selectedHole.greenImage, !greenImageUrl.isEmpty {
-                // 그린 이미지 표시
-                AsyncImage(url: URL(string: greenImageUrl)) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .cornerRadius(20)
-                        .rotationEffect(Angle(degrees: -heading))
-                } placeholder: {
-                    placeholderGreenView
-                        .rotationEffect(Angle(degrees: -heading))
-                }
+            if !selectedHole.greenImage.isEmpty {
+                // 그린 이미지 표시 (번들 이미지)
+                Image(selectedHole.greenImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .cornerRadius(20)
+                    .rotationEffect(Angle(degrees: -heading))
             } else {
                 // 플레이스홀더
                 placeholderGreenView
