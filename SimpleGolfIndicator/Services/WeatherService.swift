@@ -29,7 +29,7 @@ class WeatherService: ObservableObject {
     }
     
     private func fetchFromOpenWeather(latitude: Double, longitude: Double) {
-        let urlString = "\(AppConfig.openWeatherBaseURL)/weather?lat=\(latitude)&lon=\(longitude)&appid=\(AppConfig.openWeatherAPIKey)&units=metric&lang=kr"
+        let urlString = "\(AppConfig.weatherBaseURL)?lat=\(latitude)&lon=\(longitude)&appid=\(AppConfig.weatherAPIKey)&units=metric&lang=kr"
         
         guard let url = URL(string: urlString) else {
             handleError("잘못된 URL입니다")
@@ -37,7 +37,7 @@ class WeatherService: ObservableObject {
         }
         
         var request = URLRequest(url: url)
-        request.timeoutInterval = AppConfig.requestTimeout
+        request.timeoutInterval = 30.0 // 기본 타임아웃
         
         if AppConfig.enableLogging {
             print("Fetching weather from: \(urlString)")
@@ -92,19 +92,12 @@ class WeatherService: ObservableObject {
         
         // 캐시 만료 확인 (30분)
         let timeSinceCache = Date().timeIntervalSince(cachedData.timestamp)
-        if timeSinceCache > AppConfig.weatherCacheExpirationTime {
+        if timeSinceCache > 1800 { // 30분
             cache.removeObject(forKey: key as NSString)
             return nil
         }
         
         return cachedData
-    }
-    
-    // MARK: - Public Methods
-    func refreshWeatherData(for location: CLLocationCoordinate2D) {
-        let cacheKey = "\(location.latitude),\(location.longitude)"
-        cache.removeObject(forKey: cacheKey as NSString)
-        fetchWeatherData(for: location)
     }
 }
 
@@ -117,4 +110,45 @@ private class CachedWeatherData {
         self.weatherData = weatherData
         self.timestamp = timestamp
     }
+}
+
+// MARK: - Weather Data Models
+struct WeatherData {
+    let temperature: Double
+    let humidity: Int
+    let windSpeed: Double
+    let windDirection: Int
+    let description: String
+    
+    var rawWindDegrees: Double {
+        Double(windDirection)
+    }
+    
+    init(from response: OpenWeatherResponse) {
+        self.temperature = response.main.temp
+        self.humidity = response.main.humidity
+        self.windSpeed = response.wind.speed
+        self.windDirection = response.wind.deg
+        self.description = response.weather.first?.description ?? ""
+    }
+}
+
+struct OpenWeatherResponse: Codable {
+    let main: MainWeather
+    let wind: Wind
+    let weather: [WeatherDescription]
+}
+
+struct MainWeather: Codable {
+    let temp: Double
+    let humidity: Int
+}
+
+struct Wind: Codable {
+    let speed: Double
+    let deg: Int
+}
+
+struct WeatherDescription: Codable {
+    let description: String
 }
