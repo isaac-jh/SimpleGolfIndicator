@@ -1,0 +1,163 @@
+{
+  "name": "부여CC",
+  "courses": [
+    {
+      "name": "SKY",
+      "holes": [
+        {
+          "num": 1,
+          "par": 4,
+          "distance": 329,
+          "elevation": 14,
+          "holeImage": "sky_1",
+          "greenImage": "sky_g_1"
+        },
+        {
+          "num": 2,
+          "par": 4,
+          "distance": 332,
+          "elevation": -3,
+          "holeImage": "sky_2",
+          "greenImage": "sky_g_2"
+        },
+        {
+          "num": 3,
+          "par": 4,
+          "distance": 299,
+          "elevation": 17,
+          "holeImage": "sky_3",
+          "greenImage": "sky_g_3"
+        },
+        {
+          "num": 4,
+          "par": 4,
+          "distance": 349,
+          "elevation": 18,
+          "holeImage": "sky_4",
+          "greenImage": "sky_g_4"
+        },
+        {
+          "num": 5,
+          "par": 3,
+          "distance": 130,
+          "elevation": -7,
+          "holeImage": "sky_5",
+          "greenImage": "sky_g_5"
+        },
+        {
+          "num": 6,
+          "par": 5,
+          "distance": 453,
+          "elevation": 1,
+          "holeImage": "sky_6",
+          "greenImage": "sky_g_6"
+        },
+        {
+          "num": 7,
+          "par": 4,
+          "distance": 298,
+          "elevation": -4,
+          "holeImage": "sky_7",
+          "greenImage": "sky_g_7"
+        },
+        {
+          "num": 8,
+          "par": 3,
+          "distance": 145,
+          "elevation": -18,
+          "holeImage": "sky_8",
+          "greenImage": "sky_g_8"
+        },
+        {
+          "num": 9,
+          "par": 5,
+          "distance": 436,
+          "elevation": 2,
+          "holeImage": "sky_9",
+          "greenImage": "sky_g_9"
+        }
+      ]
+    },
+    {
+      "name": "HILL",
+      "holes": [
+        {
+          "num": 1,
+          "par": 4,
+          "distance": 303,
+          "elevation": 18,
+          "holeImage": "hill_1",
+          "greenImage": "hill_g_1"
+        },
+        {
+          "num": 2,
+          "par": 4,
+          "distance": 325,
+          "elevation": 1.5,
+          "holeImage": "hill_2",
+          "greenImage": "hill_g_2"
+        },
+        {
+          "num": 3,
+          "par": 3,
+          "distance": 132,
+          "elevation": 0.3,
+          "holeImage": "hill_3",
+          "greenImage": "hill_g_3"
+        },
+        {
+          "num": 4,
+          "par": 5,
+          "distance": 438,
+          "elevation": -22,
+          "holeImage": "hill_4",
+          "greenImage": "hill_g_4"
+        },
+        {
+          "num": 5,
+          "par": 4,
+          "distance": 233,
+          "elevation": -2.5,
+          "holeImage": "hill_5",
+          "greenImage": "hill_g_5"
+        },
+        {
+          "num": 6,
+          "par": 3,
+          "distance": 132,
+          "elevation": -1.8,
+          "holeImage": "hill_6",
+          "greenImage": "hill_g_6"
+        },
+        {
+          "num": 7,
+          "par": 5,
+          "distance": 465,
+          "elevation": 13.5,
+          "holeImage": "hill_7",
+          "greenImage": "hill_g_7"
+        },
+        {
+          "num": 8,
+          "par": 4,
+          "distance": 274,
+          "elevation": 6.2,
+          "holeImage": "hill_8",
+          "greenImage": "hill_g_8"
+        },
+        {
+          "num": 9,
+          "par": 4,
+          "distance": 296,
+          "elevation": -13.2,
+          "holeImage": "hill_9",
+          "greenImage": "hill_g_9"
+        }
+      ]
+    }
+  ],
+  "location": {
+    "latitude": 33.450701,
+    "longitude": 126.570667
+  }
+}
