@@ -35,55 +35,57 @@ struct MainHoleView: View {
                 // 잔디 배경
                 GrassBackground()
                 
-                HStack(spacing: 0) {
+                HStack(alignment: .center) {
                     // 왼쪽 영역 - 정보 카드들
-                    VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 12)) {
+                    VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 6)) {
                         // 코스 정보
-                        InfoCard {
-                            VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 4)) {
-                                Text(selectedCourse.name)
-                                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 14), weight: .bold))
-                                    .foregroundColor(.primary)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.8)
-                                
-                                Text("\(getCurrentHole().num)홀")
-                                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 12), weight: .medium))
-                                    .foregroundColor(.secondary)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.8)
-                            }
-                        }
-                        
-                        // 파 정보
-                        InfoCard {
-                            VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 4)) {
-                                Text("Par \(getCurrentHole().par)")
-                                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 16), weight: .bold))
-                                    .foregroundColor(.primary)
-                            }
-                        }
-                        
-                        // 거리 정보
-                        InfoCard {
-                            VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 4)) {
-                                Text("\(getCurrentHole().distance)m")
-                                    .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 18), weight: .bold))
-                                    .foregroundColor(.primary)
-                            }
-                        }
-                        
-                        // 고도차 정보
-                        InfoCard {
-                            VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 4)) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: getCurrentHole().elevation >= 0 ? "arrow.up" : "arrow.down")
-                                        .foregroundColor(getCurrentHole().elevation >= 0 ? Color(red: 0.8, green: 0.2, blue: 0.2) : Color(red: 0.4, green: 0.6, blue: 0.9))
-                                        .font(.system(size: DeviceSizeHelper.getIconSize(baseSize: 12)))
+                        VStack {
+                            InfoCard {
+                                VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 2)) {
+                                    Text(selectedCourse.name)
+                                        .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 11), weight: .bold))
+                                        .foregroundColor(.primary)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
                                     
-                                    Text("\(abs(getCurrentHole().elevation))m")
-                                        .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 18), weight: .bold))
-                                        .foregroundColor(getCurrentHole().elevation >= 0 ? Color(red: 0.8, green: 0.2, blue: 0.2) : Color(red: 0.4, green: 0.6, blue: 0.9))
+                                    Text("\(getCurrentHole().num)홀")
+                                        .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 9), weight: .medium))
+                                        .foregroundColor(.secondary)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
+                                }
+                            }
+                            
+                            // 파 정보
+                            InfoCard {
+                                VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 2)) {
+                                    Text("Par \(getCurrentHole().par)")
+                                        .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 13), weight: .bold))
+                                        .foregroundColor(.primary)
+                                }
+                            }
+                            
+                            // 거리 정보
+                            InfoCard {
+                                VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 2)) {
+                                    Text("\(getCurrentHole().distance)m")
+                                        .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 14), weight: .bold))
+                                        .foregroundColor(.primary)
+                                }
+                            }
+                            
+                            // 고도차 정보
+                            InfoCard {
+                                VStack(spacing: DeviceSizeHelper.getPadding(basePadding: 2)) {
+                                    HStack(spacing: 2) {
+                                        Image(systemName: getCurrentHole().elevation >= 0 ? "arrow.up" : "arrow.down")
+                                            .foregroundColor(getCurrentHole().elevation >= 0 ? Color(red: 0.8, green: 0.2, blue: 0.2) : Color(red: 0.4, green: 0.6, blue: 0.9))
+                                            .font(.system(size: DeviceSizeHelper.getIconSize(baseSize: 9)))
+                                        
+                                        Text("\(abs(getCurrentHole().elevation))m")
+                                            .font(.system(size: DeviceSizeHelper.getFontSize(baseSize: 14), weight: .bold))
+                                            .foregroundColor(getCurrentHole().elevation >= 0 ? Color(red: 0.8, green: 0.2, blue: 0.2) : Color(red: 0.4, green: 0.6, blue: 0.9))
+                                    }
                                 }
                             }
                         }
@@ -95,19 +97,16 @@ struct MainHoleView: View {
                             heading: locationManager.heading?.trueHeading ?? 0,
                             windDirection: getWindArrowRotation(),
                             windSpeed: weatherService.weatherData?.windSpeed ?? 0.0,
-                            size: geometry.size.width * 0.3
+                            size: geometry.size.width * 0.25
                         )
                     }
-                    .frame(width: geometry.size.width * 0.35)
-                    .padding(.leading, DeviceSizeHelper.getPadding(basePadding: 10))
-                    .padding(.top, DeviceSizeHelper.getPadding(basePadding: 10))
-                    .padding(.trailing, DeviceSizeHelper.getPadding(basePadding: 5))
+                    .frame(width: geometry.size.width * 0.4, height: geometry.size.height)
                     
                     // 오른쪽 영역 - 홀 이미지
                     ZStack {
                         // 홀 이미지
                         holeImageView
-                            .frame(width: geometry.size.width * 0.65, height: geometry.size.height)
+                            .frame(width: geometry.size.width * 0.60, height: geometry.size.height)
                             .gesture(
                                 TapGesture()
                                     .onEnded {
@@ -128,9 +127,7 @@ struct MainHoleView: View {
                                     }
                             )
                     }
-                    .frame(width: geometry.size.width * 0.65)
-                    .padding(.leading, DeviceSizeHelper.getPadding(basePadding: 5))
-                    .padding(.top, DeviceSizeHelper.getPadding(basePadding: 10))
+                    .frame(width: geometry.size.width * 0.60, height: geometry.size.height)
                 }
             }
         }
@@ -149,8 +146,7 @@ struct MainHoleView: View {
                 heading: locationManager.heading?.trueHeading ?? 0
             )
         }
-        .navigationTitle("\(getCurrentHole().num)번 홀")
-        .navigationBarTitleDisplayMode(.inline)
+
         .onAppear {
             loadWeatherData()
             locationManager.startUpdatingHeading()

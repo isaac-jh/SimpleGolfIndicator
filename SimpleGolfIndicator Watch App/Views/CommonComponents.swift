@@ -8,15 +8,15 @@ struct DeviceSizeHelper {
     }
     
     static func getFontSize(baseSize: CGFloat) -> CGFloat {
-        return isUltra() ? baseSize * 1.2 : baseSize
+        return isUltra() ? baseSize * 0.9 : baseSize * 0.8
     }
     
     static func getPadding(basePadding: CGFloat) -> CGFloat {
-        return isUltra() ? basePadding * 1.3 : basePadding
+        return isUltra() ? basePadding * 0.8 : basePadding * 0.6
     }
     
     static func getIconSize(baseSize: CGFloat) -> CGFloat {
-        return isUltra() ? baseSize * 1.15 : baseSize
+        return isUltra() ? baseSize * 0.9 : baseSize * 0.8
     }
 }
 
@@ -30,7 +30,7 @@ struct InfoCard<Content: View>: View {
     
     var body: some View {
         content
-            .padding(DeviceSizeHelper.getPadding(basePadding: 16))
+            .padding(DeviceSizeHelper.getPadding(basePadding: 8))
             .background(
                 RoundedRectangle(cornerRadius: DeviceSizeHelper.isUltra() ? 20 : 15)
                     .fill(Color.black.opacity(0.8))

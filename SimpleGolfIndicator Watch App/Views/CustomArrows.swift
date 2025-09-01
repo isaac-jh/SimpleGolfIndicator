@@ -47,9 +47,9 @@ struct CompassNeedle: View {
             // 북쪽 바늘 (빨간색)
             Path { path in
                 path.move(to: CGPoint(x: 0, y: -size/2))
-                path.addLine(to: CGPoint(x: -size/6, y: size/6))
-                path.addLine(to: CGPoint(x: 0, y: size/3))
-                path.addLine(to: CGPoint(x: size/6, y: size/6))
+                path.addLine(to: CGPoint(x: -size/8, y: size/8))
+                path.addLine(to: CGPoint(x: 0, y: size/4))
+                path.addLine(to: CGPoint(x: size/8, y: size/8))
                 path.closeSubpath()
             }
             .fill(
@@ -64,9 +64,9 @@ struct CompassNeedle: View {
             // 남쪽 바늘 (검은색)
             Path { path in
                 path.move(to: CGPoint(x: 0, y: size/2))
-                path.addLine(to: CGPoint(x: -size/6, y: -size/6))
-                path.addLine(to: CGPoint(x: 0, y: -size/3))
-                path.addLine(to: CGPoint(x: size/6, y: -size/6))
+                path.addLine(to: CGPoint(x: -size/8, y: -size/8))
+                path.addLine(to: CGPoint(x: 0, y: -size/4))
+                path.addLine(to: CGPoint(x: size/8, y: -size/8))
                 path.closeSubpath()
             }
             .fill(
@@ -81,13 +81,14 @@ struct CompassNeedle: View {
             // 중앙 원
             Circle()
                 .fill(Color.white)
-                .frame(width: size/6, height: size/6)
+                .frame(width: size/8, height: size/8)
                 .overlay(
                     Circle()
                         .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                 )
                 .shadow(color: .white.opacity(0.8), radius: 1)
         }
+        .frame(width: size, height: size)
         .rotationEffect(.degrees(-heading))
     }
 }
@@ -193,23 +194,25 @@ struct IntegratedCompassWindView: View {
             EnhancedTickMarks(color: .black, size: size)
             
             // 나침반 바늘
-            CompassNeedle(heading: heading, size: size * 0.6)
+            CompassNeedle(heading: heading, size: size * 0.4)
             
-            // 풍향 화살표 (나침반 바늘 위에)
-            WindArrow(direction: windDirection, size: size * 0.4)
+            // 풍향 화살표 (나침반 바늘 위에, 약간 오프셋)
+            WindArrow(direction: windDirection, size: size * 0.3)
+                .offset(x: size * 0.15, y: -size * 0.15)
             
-            // 풍속 숫자 (중앙에 배치)
-            VStack(spacing: 2) {
+            // 풍속 숫자 (우측 하단에 배치)
+            VStack(spacing: 1) {
                 Text("\(String(format: "%.1f", windSpeed))")
-                    .font(.system(size: size * 0.12, weight: .bold))
+                    .font(.system(size: size * 0.1, weight: .bold))
                     .foregroundColor(.blue)
-                    .shadow(color: .black.opacity(0.3), radius: 2, x: 1, y: 1)
+                    .shadow(color: .black.opacity(0.3), radius: 1, x: 0.5, y: 0.5)
                 
                 Text("m/s")
-                    .font(.system(size: size * 0.06, weight: .medium))
+                    .font(.system(size: size * 0.05, weight: .medium))
                     .foregroundColor(.blue.opacity(0.8))
-                    .shadow(color: .black.opacity(0.2), radius: 1, x: 0.5, y: 0.5)
+                    .shadow(color: .black.opacity(0.2), radius: 0.5, x: 0.25, y: 0.25)
             }
+            .offset(x: size * 0.2, y: size * 0.2)
         }
     }
 }

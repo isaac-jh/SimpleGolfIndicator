@@ -16,7 +16,8 @@ struct MainAppView: View {
     @State private var selectedGolfCourse: GolfCourse?
 
     var body: some View {
-        ZStack {
+        NavigationView {
+            ZStack {
             if let course = selectedCourse, let hole = selectedHole, let golfCourse = selectedGolfCourse {
                 MainHoleView(
                     selectedCourse: course,
@@ -51,7 +52,9 @@ struct MainAppView: View {
                 )
                 .transition(.move(edge: .bottom))
             }
+            }
+            .animation(.easeInOut(duration: 0.5), value: showInitialModal)
         }
-        .animation(.easeInOut(duration: 0.5), value: showInitialModal)
+        .navigationViewStyle(StackNavigationViewStyle())
     }
 }
