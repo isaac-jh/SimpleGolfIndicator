@@ -18,33 +18,30 @@ struct MainAppView: View {
     @State private var showingModal = false
     
     var body: some View {
-        ZStack {
-            // 메인 화면
-            MainView(
-                courseDataService: courseDataService,
-                selectedCountryClub: $selectedCountryClub,
-                selectedCourse: $selectedCourse,
-                selectedHole: $selectedHole,
-                showingModal: $showingModal
-            )
-            
-            // 초기 모달 (앱 시작 시 표시)
+        ZStack {                
             if showInitialModal {
-                Color.black.opacity(0.3)
-                    .ignoresSafeArea()
-                
-                VStack {
-                    Spacer()
-                    
-                    CourseSelectionModal(
-                        courseDataService: courseDataService,
-                        isPresented: $showInitialModal,
-                        selectedCountryClub: $selectedCountryClub,
-                        selectedCourse: $selectedCourse,
-                        selectedHole: $selectedHole
-                    )
-                    .transition(.move(edge: .bottom))
-                }
+                CourseSelectionModal(
+                    courseDataService: courseDataService,
+                    isPresented: $showInitialModal,
+                    selectedCountryClub: $selectedCountryClub,
+                    selectedCourse: $selectedCourse,
+                    selectedHole: $selectedHole
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .transition(.move(edge: .bottom))
+            }
+
+            // 메인 화면
+            if !showInitialModal {
+                MainView(
+                    courseDataService: courseDataService,
+                    selectedCountryClub: $selectedCountryClub,
+                    selectedCourse: $selectedCourse,
+                    selectedHole: $selectedHole,
+                    showingModal: $showingModal
+                )
+                .transition(.move(edge: .bottom))
+                .disabled(showInitialModal)
             }
         }
         .onAppear {
