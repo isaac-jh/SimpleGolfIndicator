@@ -21,25 +21,15 @@ struct CourseSelectionModal: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Menu {
+                Picker("CC 선택", selection: $selectedCountryClub) {
+                    Text("CC를 선택하세요").tag(nil as CountryClub?)
                     ForEach(courseDataService.countryClubs) { countryClub in
-                        Button(countryClub.name) {
-                            selectedCountryClub = countryClub
-                            selectedCourse = nil
-                            selectedHole = nil
-                        }
+                        Text(countryClub.name).tag(countryClub as CountryClub?)
                     }
-                } label: {
-                    HStack {
-                        Text(selectedCountryClub?.name ?? "CC를 선택하세요")
-                            .foregroundColor(selectedCountryClub != nil ? .primary : .secondary)
-                        Spacer()
-                        Image(systemName: "chevron.down")
-                            .foregroundColor(.secondary)
-                    }
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(8)
+                }
+                .onChange(of: selectedCountryClub) { _, _ in
+                    selectedCourse = nil
+                    selectedHole = nil
                 }
             }
             
@@ -49,26 +39,16 @@ struct CourseSelectionModal: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Menu {
+                Picker("코스 선택", selection: $selectedCourse) {
+                    Text("코스를 선택하세요").tag(nil as Course?)
                     ForEach(courseDataService.getCourses(for: selectedCountryClub)) { course in
-                        Button(course.name) {
-                            selectedCourse = course
-                            selectedHole = nil
-                        }
+                        Text(course.name).tag(course as Course?)
                     }
-                } label: {
-                    HStack {
-                        Text(selectedCourse?.name ?? "코스를 선택하세요")
-                            .foregroundColor(selectedCourse != nil ? .primary : .secondary)
-                        Spacer()
-                        Image(systemName: "chevron.down")
-                            .foregroundColor(.secondary)
-                    }
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(8)
                 }
                 .disabled(selectedCountryClub == nil)
+                .onChange(of: selectedCourse) { _, _ in
+                    selectedHole = nil
+                }
             }
             
             // 홀 선택 드롭다운
@@ -77,28 +57,11 @@ struct CourseSelectionModal: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Menu {
+                Picker("홀 선택", selection: $selectedHole) {
+                    Text("홀을 선택하세요").tag(nil as Hole?)
                     ForEach(courseDataService.getHoles(for: selectedCourse)) { hole in
-                        Button("\(hole.num)번 홀 (파\(hole.par))") {
-                            selectedHole = hole
-                        }
+                        Text("\(hole.num)번 홀 (파\(hole.par))").tag(hole as Hole?)
                     }
-                } label: {
-                    HStack {
-                        if let hole = selectedHole {
-                            Text("\(hole.num)번 홀 (파\(hole.par))")
-                                .foregroundColor(.primary)
-                        } else {
-                            Text("홀을 선택하세요")
-                                .foregroundColor(.secondary)
-                        }
-                        Spacer()
-                        Image(systemName: "chevron.down")
-                            .foregroundColor(.secondary)
-                    }
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(8)
                 }
                 .disabled(selectedCourse == nil)
             }
@@ -120,6 +83,6 @@ struct CourseSelectionModal: View {
             Spacer()
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.primary)
     }
 }

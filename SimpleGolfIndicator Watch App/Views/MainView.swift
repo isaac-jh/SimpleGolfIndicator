@@ -161,7 +161,7 @@ struct MainView: View {
                             Image(course.holes[currentHoleIndex].greenImage)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: UIScreen.main.bounds.width * 0.8, height: UIScreen.main.bounds.height * 0.8)
+                                .frame(width: 160, height: 160)
                                 .rotationEffect(.degrees(compassService.heading), anchor: .center)
                                 .clipped()
                         }
