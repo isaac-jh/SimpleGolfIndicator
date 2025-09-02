@@ -10,6 +10,9 @@ struct MainView: View {
     @Binding var selectedHole: Hole?
     @Binding var showingModal: Bool
     
+    // 캐러셀을 위한 현재 홀 인덱스
+    @State private var currentHoleIndex: Int = 0
+    
     var body: some View {
         ZStack {
             // 잔디색 배경
@@ -37,7 +40,7 @@ struct MainView: View {
                             .clipShape(Circle())
                         
                         // 홀 넘버
-                        Text("Hole \(selectedHole?.num ?? 1)")
+                        Text("Hole \(getCurrentHole()?.num ?? 1)")
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(.white)
                             .frame(width: 80, height: 40)
@@ -45,7 +48,7 @@ struct MainView: View {
                             .clipShape(Circle())
                         
                         // 파
-                        Text("Par \(selectedHole?.par ?? 4)")
+                        Text("Par \(getCurrentHole()?.par ?? 4)")
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(.white)
                             .frame(width: 80, height: 40)
@@ -53,7 +56,7 @@ struct MainView: View {
                             .clipShape(Circle())
                         
                         // 홀 전장
-                        Text("\(selectedHole?.distance ?? 375)m")
+                        Text("\(getCurrentHole()?.distance ?? 375)m")
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(.white)
                             .frame(width: 80, height: 40)
@@ -62,7 +65,7 @@ struct MainView: View {
                         
                         // 고도차
                         HStack(spacing: 4) {
-                            if let elevation = selectedHole?.elevation {
+                            if let elevation = getCurrentHole()?.elevation {
                                 if elevation > 0 {
                                     // 오르막
                                     Image(systemName: "arrow.up")
@@ -101,14 +104,46 @@ struct MainView: View {
                 }
                 .frame(maxWidth: .infinity)
                 
-                // 우측 50% 영역
-                Rectangle()
-                    .fill(Color.clear)
-                    .frame(maxWidth: .infinity)
+                // 우측 50% 영역 - 홀 이미지 캐러셀
+                VStack {
+                    if let course = selectedCourse {
+                        // 홀 이미지
+                        Image(course.holes[currentHoleIndex].holeImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .clipped()
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .gesture(
+                    DragGesture()
+                        .onEnded { value in
+                            if let course = selectedCourse {
+                                if value.translation.x < -50 && currentHoleIndex < course.holes.count - 1 {
+                                    // 왼쪽 스와이프 - 다음 홀
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        currentHoleIndex += 1
+                                    }
+                                } else if value.translation.x > 50 && currentHoleIndex > 0 {
+                                    // 오른쪽 스와이프 - 이전 홀
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        currentHoleIndex -= 1
+                                    }
+                                }
+                            }
+                        }
+                )
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onChange(of: selectedHole) { newHole in
+            // 홀 선택 시 캐러셀 인덱스 초기화
+            if let course = selectedCourse, let hole = newHole {
+                currentHoleIndex = course.holes.firstIndex(where: { $0.num == hole.num }) ?? 0
+            }
+        }
         .gesture(
             DragGesture()
                 .onEnded { value in
@@ -130,5 +165,11 @@ struct MainView: View {
                 weatherService.stopAutoRefresh()
             }
         }
+    }
+    
+    // 현재 캐러셀에 표시되는 홀 정보를 반환
+    private func getCurrentHole() -> Hole? {
+        guard let course = selectedCourse, currentHoleIndex < course.holes.count else { return nil }
+        return course.holes[currentHoleIndex]
     }
 }
