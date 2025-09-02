@@ -36,7 +36,7 @@ struct CompassWindView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 120, height: 120)
-                .rotationEffect(.degrees(-compassService.heading))
+                .rotationEffect(.degrees(-compassService.heading), anchor: .center)
             
             // 풍향 바늘 (WindCursor)
             if let weather = weatherService.currentWeather {
@@ -44,7 +44,7 @@ struct CompassWindView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 100, height: 100)
-                    .rotationEffect(.degrees(weather.windDeg - compassService.heading))
+                    .rotationEffect(.degrees(weather.windDeg - compassService.heading), anchor: .center)
                     .overlay(
                         // 풍속 표시
                         Text(String(format: "%.1f", weather.windSpeed))

@@ -12,6 +12,8 @@ struct MainView: View {
     
     // 캐러셀을 위한 현재 홀 인덱스
     @State private var currentHoleIndex: Int = 0
+    // 그린 이미지 모달 표시 여부
+    @State private var showingGreenModal = false
     
     var body: some View {
         ZStack {
@@ -113,6 +115,9 @@ struct MainView: View {
                             .aspectRatio(contentMode: .fit)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .clipped()
+                            .onTapGesture {
+                                showingGreenModal = true
+                            }
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -136,6 +141,49 @@ struct MainView: View {
                 )
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
+            // 그린 이미지 모달
+            if showingGreenModal {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showingGreenModal = false
+                        }
+                    }
+                
+                HStack {
+                    Spacer()
+                    
+                    VStack {
+                        if let course = selectedCourse {
+                            // 그린 이미지 (나침반과 함께 회전)
+                            Image(course.holes[currentHoleIndex].greenImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: UIScreen.main.bounds.width * 0.8, height: UIScreen.main.bounds.height * 0.8)
+                                .rotationEffect(.degrees(compassService.heading), anchor: .center)
+                                .clipped()
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.white)
+                    .cornerRadius(16)
+                    .padding()
+                    .gesture(
+                        DragGesture()
+                            .onEnded { value in
+                                if value.translation.x > 50 {
+                                    // 우측 스와이프로 모달 닫기
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        showingGreenModal = false
+                                    }
+                                }
+                            }
+                    )
+                    .transition(.move(edge: .trailing))
+                }
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onChange(of: selectedHole) { newHole in
