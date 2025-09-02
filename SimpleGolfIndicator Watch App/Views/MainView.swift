@@ -3,6 +3,8 @@ import SwiftUI
 // MARK: - 메인 화면
 struct MainView: View {
     @ObservedObject var courseDataService: CourseDataService
+    @StateObject private var weatherService = WeatherService()
+    @StateObject private var compassService = CompassService()
     @Binding var selectedCountryClub: CountryClub?
     @Binding var selectedCourse: Course?
     @Binding var selectedHole: Hole?
@@ -10,88 +12,7 @@ struct MainView: View {
     
     var body: some View {
         ZStack {
-            // 메인 콘텐츠 (현재는 빈 화면)
-            VStack {
-                if let hole = selectedHole {
-                    VStack(spacing: 16) {
-                        Text("\(selectedCountryClub?.name ?? "") - \(selectedCourse?.name ?? "")")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        Text("\(hole.num)번 홀")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                        
-                        HStack(spacing: 20) {
-                            VStack {
-                                Text("파")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Text("\(hole.par)")
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
-                            }
-                            
-                            VStack {
-                                Text("거리")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Text("\(hole.distance)m")
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
-                            }
-                            
-                            VStack {
-                                Text("고도")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Text("\(hole.elevation > 0 ? "+" : "")\(String(format: "%.1f", hole.elevation))m")
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(hole.elevation > 0 ? .red : .blue)
-                            }
-                        }
-                        
-                        Spacer()
-                        
-                        Text("메인 화면 준비 중...")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding()
-                } else {
-                    VStack {
-                        Text("코스를 선택해주세요")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        
-                        Spacer()
-                    }
-                    .padding()
-                }
-            }
             
-            // 모달 오버레이
-            if showingModal {
-                Color.black.opacity(0.3)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        showingModal = false
-                    }
-                
-                VStack {
-                    Spacer()
-                    
-                    CourseSelectionModal(
-                        courseDataService: courseDataService,
-                        isPresented: $showingModal,
-                        selectedCountryClub: $selectedCountryClub,
-                        selectedCourse: $selectedCourse,
-                        selectedHole: $selectedHole
-                    )
-                    .transition(.move(edge: .bottom))
-                }
-            }
         }
         .gesture(
             DragGesture()
@@ -103,5 +24,16 @@ struct MainView: View {
                     }
                 }
         )
+        .onChange(of: selectedCountryClub) { newCountryClub in
+            if let countryClub = newCountryClub {
+                // 선택된 CC의 위치로 날씨 데이터 가져오기 시작
+                weatherService.startAutoRefresh(
+                    latitude: countryClub.location.latitude,
+                    longitude: countryClub.location.longitude
+                )
+            } else {
+                weatherService.stopAutoRefresh()
+            }
+        }
     }
 }

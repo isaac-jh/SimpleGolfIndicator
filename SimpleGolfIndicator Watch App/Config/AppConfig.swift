@@ -4,7 +4,7 @@ import Foundation
 struct AppConfig {
     // MARK: - Weather API Settings
     static let weatherAPIKey = "6a61d141678b423b0438629096b80f97" // OpenWeatherMap API 키
-    static let weatherBaseURL = "https://api.openweathermap.org/data/2.5/weather"
+    static let weatherRequestURL = "https://api.openweathermap.org/data/3.0/onecall"
     
     // MARK: - Debug Settings
     static let isDebugMode = false
