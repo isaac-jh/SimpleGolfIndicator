@@ -10,29 +10,6 @@ class WeatherService: ObservableObject {
     private var timer: Timer?
     private var cancellables = Set<AnyCancellable>()
     
-    /// 테스트용 더미 날씨 데이터를 생성합니다
-    private func createDummyWeatherData() -> CurrentWeather {
-        return CurrentWeather(
-            dt: Int(Date().timeIntervalSince1970),
-            sunrise: 0,
-            sunset: 0,
-            temp: 20.0,
-            feelsLike: 22.0,
-            pressure: 1013,
-            humidity: 65,
-            dewPoint: 15.0,
-            uvi: 0.5,
-            clouds: 30,
-            visibility: 10000,
-            windSpeed: 5.2,
-            windDeg: 180.0,
-            windGust: 8.0,
-            weather: [
-                WeatherDescription(id: 800, main: "Clear", description: "맑음", icon: "01d")
-            ]
-        )
-    }
-    
     /// 날씨 데이터를 가져옵니다
     /// - Parameters:
     ///   - latitude: 위도
@@ -74,21 +51,8 @@ class WeatherService: ObservableObject {
                 receiveValue: { [weak self] response in
                     // 필요한 값만 CurrentWeather로 매핑
                     let mapped = CurrentWeather(
-                        dt: Int(Date().timeIntervalSince1970),
-                        sunrise: 0,
-                        sunset: 0,
-                        temp: 0,
-                        feelsLike: 0,
-                        pressure: 0,
-                        humidity: 0,
-                        dewPoint: 0,
-                        uvi: 0,
-                        clouds: 0,
-                        visibility: 0,
                         windSpeed: response.wind.speed,
-                        windDeg: response.wind.deg,
-                        windGust: 0,
-                        weather: []
+                        windDeg: response.wind.deg
                     )
                     self?.currentWeather = mapped
                 }
