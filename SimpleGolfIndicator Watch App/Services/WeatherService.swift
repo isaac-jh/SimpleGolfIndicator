@@ -41,15 +41,11 @@ class WeatherService: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        // TODO: API 키 권한 문제로 인해 현재는 더미 데이터 사용
-        // 실제 구현 시에는 아래 주석 처리된 코드를 사용
-        /*
-        // URL 구성
+        // URL 구성 (OpenWeather 2.5/weather)
         var components = URLComponents(string: AppConfig.weatherRequestURL)
         components?.queryItems = [
             URLQueryItem(name: "lat", value: String(latitude)),
             URLQueryItem(name: "lon", value: String(longitude)),
-            URLQueryItem(name: "exclude", value: "minutely,hourly,daily,alerts"),
             URLQueryItem(name: "appid", value: AppConfig.weatherAPIKey)
         ]
         
@@ -59,10 +55,14 @@ class WeatherService: ObservableObject {
             return
         }
         
-        // 네트워크 요청
         URLSession.shared.dataTaskPublisher(for: url)
-            .map(\.data)
-            .decode(type: WeatherResponse.self, decoder: JSONDecoder())
+            .tryMap { result -> Data in
+                guard let http = result.response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+                    throw URLError(.badServerResponse)
+                }
+                return result.data
+            }
+            .decode(type: WeatherNowResponse.self, decoder: JSONDecoder())
             .receive(on: DispatchQueue.main)
             .sink(
                 receiveCompletion: { [weak self] completion in
@@ -71,18 +71,29 @@ class WeatherService: ObservableObject {
                         self?.errorMessage = "날씨 데이터 가져오기 실패: \(error.localizedDescription)"
                     }
                 },
-                receiveValue: { [weak self] weatherResponse in
-                    self?.currentWeather = weatherResponse.current
+                receiveValue: { [weak self] response in
+                    // 필요한 값만 CurrentWeather로 매핑
+                    let mapped = CurrentWeather(
+                        dt: Int(Date().timeIntervalSince1970),
+                        sunrise: 0,
+                        sunset: 0,
+                        temp: 0,
+                        feelsLike: 0,
+                        pressure: 0,
+                        humidity: 0,
+                        dewPoint: 0,
+                        uvi: 0,
+                        clouds: 0,
+                        visibility: 0,
+                        windSpeed: response.wind.speed,
+                        windDeg: response.wind.deg,
+                        windGust: 0,
+                        weather: []
+                    )
+                    self?.currentWeather = mapped
                 }
             )
             .store(in: &cancellables)
-        */
-        
-        // 더미 데이터 사용 (테스트용)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            self?.currentWeather = self?.createDummyWeatherData()
-            self?.isLoading = false
-        }
     }
     
     /// 10분마다 날씨 데이터를 자동으로 업데이트합니다
@@ -95,7 +106,7 @@ class WeatherService: ObservableObject {
         
         // 10분마다 자동 업데이트 (테스트용으로는 30초마다)
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { [weak self] _ in
             self?.fetchWeatherData(latitude: latitude, longitude: longitude)
         }
     }

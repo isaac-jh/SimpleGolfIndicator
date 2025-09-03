@@ -47,3 +47,13 @@ struct WeatherDescription: Codable {
     let description: String
     let icon: String
 }
+
+// MARK: - OpenWeather 2.5/weather (wind only)
+struct WeatherNowResponse: Codable {
+    let wind: Wind
+    
+    struct Wind: Codable {
+        let speed: Double
+        let deg: Double
+    }
+}
