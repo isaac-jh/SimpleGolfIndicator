@@ -65,6 +65,10 @@ class WeatherService: ObservableObject {
     ///   - latitude: 위도
     ///   - longitude: 경도
     func startAutoRefresh(latitude: Double, longitude: Double) {
+        // 기존 데이터 초기화
+        currentWeather = nil
+        errorMessage = nil
+        
         // 즉시 첫 번째 요청
         fetchWeatherData(latitude: latitude, longitude: longitude)
         

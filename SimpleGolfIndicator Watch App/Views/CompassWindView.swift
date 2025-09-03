@@ -64,6 +64,26 @@ struct CompassWindView: View {
                                         .frame(width: size * 0.26, height: size * 0.26)
                                 )
                         )
+                } else if weatherService.isLoading {
+                    // 로딩 중일 때 표시
+                    Circle()
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 2)
+                        .frame(width: size * 0.62, height: size * 0.62)
+                        .overlay(
+                            ProgressView()
+                                .scaleEffect(0.5)
+                                .progressViewStyle(CircularProgressViewStyle(tint: .gray))
+                        )
+                } else if weatherService.errorMessage != nil {
+                    // 에러 발생 시 표시
+                    Circle()
+                        .stroke(Color.red.opacity(0.3), lineWidth: 2)
+                        .frame(width: size * 0.62, height: size * 0.62)
+                        .overlay(
+                            Image(systemName: "exclamationmark.triangle")
+                                .foregroundColor(.red)
+                                .font(.system(size: max(size * 0.1, 12)))
+                        )
                 }
                 
                 // 중앙 점

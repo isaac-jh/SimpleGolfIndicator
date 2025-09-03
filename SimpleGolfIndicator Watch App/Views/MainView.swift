@@ -58,6 +58,15 @@ struct MainView: View {
                 weatherService.stopAutoRefresh()
             }
         }
+        .onAppear {
+            // MainView가 나타날 때 선택된 CountryClub이 있다면 날씨 데이터 가져오기
+            if let countryClub = selectedCountryClub {
+                weatherService.startAutoRefresh(
+                    latitude: countryClub.location.latitude,
+                    longitude: countryClub.location.longitude
+                )
+            }
+        }
     }
     
     // 현재 캐러셀에 표시되는 홀 정보를 반환
