@@ -9,6 +9,7 @@ struct MainView: View {
     @Binding var selectedCourse: Course?
     @Binding var selectedHole: Hole?
     @Binding var showingModal: Bool
+    @Binding var showInitialModal: Bool
     
     // 캐러셀을 위한 현재 홀 인덱스
     @State private var currentHoleIndex: Int = 0
@@ -37,16 +38,7 @@ struct MainView: View {
                 currentHoleIndex = course.holes.firstIndex(where: { $0.num == hole.num }) ?? 0
             }
         }
-        .gesture(
-            DragGesture()
-                .onEnded { value in
-                    if value.translation.height < -50 && !showingModal {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            showingModal = true
-                        }
-                    }
-                }
-        )
+
         .onChange(of: selectedCountryClub) { _, newCountryClub in
             if let countryClub = newCountryClub {
                 // 선택된 CC의 위치로 날씨 데이터 가져오기 시작
@@ -101,13 +93,20 @@ struct MainView: View {
         VStack {
             VStack(spacing: 4) {
                 // 코스명
-                roundedBadge {
-                    Text(selectedCourse?.name ?? "-")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.white)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.6)
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        showInitialModal = true
+                    }
+                }) {
+                    roundedBadge {
+                        Text(selectedCourse?.name ?? "-")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                    }
                 }
+                .buttonStyle(.plain)
                 
                 // 홀 넘버
                 roundedBadge {

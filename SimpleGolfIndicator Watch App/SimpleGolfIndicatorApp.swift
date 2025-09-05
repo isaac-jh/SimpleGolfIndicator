@@ -38,7 +38,8 @@ struct MainAppView: View {
                     selectedCountryClub: $selectedCountryClub,
                     selectedCourse: $selectedCourse,
                     selectedHole: $selectedHole,
-                    showingModal: $showingModal
+                    showingModal: $showingModal,
+                    showInitialModal: $showInitialModal
                 )
                 .transition(.move(edge: .bottom))
                 .disabled(showInitialModal)
